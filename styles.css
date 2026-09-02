@@ -299,6 +299,11 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .sheet-note strong { color: var(--ink-muted); font-weight: 650; }
 .sheet-foot { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
 
+/* The two answers on the connect card, each the full width of it: this is a
+   choice between them, not a main action with an afterthought beside it. */
+.choice-actions { display: grid; gap: 10px; margin-top: 22px; }
+.choice-actions .btn { width: 100%; }
+
 .grp + .grp { margin-top: 18px; }
 .grp-t {
   font-size: 11px;
