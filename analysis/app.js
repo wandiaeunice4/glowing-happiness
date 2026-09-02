@@ -394,6 +394,11 @@
     }
 
     if (d.msg_type === "balance" && d.balance) {
+      /* In analysis-only the socket is open on a demo purely for prices, and
+         the badge beside this figure still reads Real. Writing the demo's
+         balance there is a claim about how much money is at stake, so the
+         perch stays blank until there is an account it belongs to. */
+      if (analysisOnly) return;
       $("balance").textContent = money(d.balance.balance, d.balance.currency);
     }
   });
@@ -776,6 +781,12 @@
       ? allAccounts
       : allAccounts.filter(function (a) { return !a.demo; });
 
+    /* Analysis-only means the picker has nothing to trade on — not a verdict
+       reached once when the portfolio arrived. Revealing the demo puts an
+       account back in it, and turning trading back on is the whole point of
+       the reveal; hiding it again takes trading away with it. */
+    analysisOnly = !accounts.length;
+
     $("account").innerHTML = accounts.map(function (a) {
       return '<option value="' + esc(a.id) + '">' + esc(a.id) + " · " +
         (a.demo ? "Demo" : "Real") + " · " + esc(money(a.balance, a.currency)) + "</option>";
@@ -799,13 +810,20 @@
       $("acct-fld").hidden = !showDemo;
       renderAccounts();
 
-      if (showDemo && accounts.length && !session.isLive()) {
-        /* A login with no real account had nothing to open a session on, so
-           revealing the demo is the moment there is finally something to
-           trade. Without this the picker fills in and the page stays dead. */
-        $("account").value = accounts[0].id;
+      if (showDemo && accounts.length) {
+        /* Revealing the demo is the moment a login with no real account
+           finally has something to trade on. The header has to say so —
+           without this the badge went on reading Real over a demo, and the
+           risk line went on saying trading was off while it was back on. */
+        var pick = accounts.some(function (a) { return a.id === $("account").value; })
+          ? $("account").value
+          : accounts[0].id;
+        $("account").value = pick;
         describeAccount();
-        openSession(accounts[0].id);
+
+        /* The socket may already be open on this very account: in
+           analysis-only it is the price feed the cards are drawn from. */
+        if (session.accountId !== pick) openSession(pick);
       }
 
       if (!showDemo) {
@@ -822,13 +840,14 @@
           describeAccount();
           if (session.accountId !== real.id) openSession(real.id);
         } else {
-          // Nothing real to fall back to: end the demo session rather than
-          // leave it running behind a hidden picker.
-          session.close();
+          /* Nothing real to fall back to. The session stays open on the demo
+             — it is the price feed the cards are drawn from, and closing it
+             left the page dead behind a hidden picker. Only trading goes,
+             and renderAccounts has already taken it. */
           $("balance").textContent = "—";
           $("acct-badge").textContent = "Real";
           $("acct-badge").classList.remove("badge--demo");
-          $("risk").textContent = "This login has no real options account.";
+          $("risk").textContent = "No real options account yet — the analysis is live, trading is not.";
           $("risk").className = "risk";
         }
       }
@@ -916,15 +935,11 @@
       $("risk").textContent = "No real options account yet — the analysis is live, trading is not.";
       $("risk").className = "risk";
 
-      analysisOnly = true;
       var feed = allAccounts[0];          // a demo, since there is no real one
       if (feed && session.accountId !== feed.id) openSession(feed.id);
 
       return status("Analysis only: this login has no real options account to trade on.", "warning");
     }
-
-    // A real account has appeared (or been revealed): trading is on again.
-    analysisOnly = false;
 
     // Keep the remembered account if it is still one of the ones on offer.
     var keep = accounts.filter(function (a) { return a.id === remembered; })[0];
