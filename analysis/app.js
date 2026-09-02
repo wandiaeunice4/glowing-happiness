@@ -946,7 +946,20 @@
   if (window.EvieBot) {
     window.EvieBot.attach({
       markets: MARKETS,
-      isLive: function () { return session.isLive(); },
+
+      /* Live, to the bot, means CAN TRADE — not merely that a socket is open.
+         Analysis-only opens a socket for prices on whatever account the login
+         has, and placeTrade refuses on it. Reporting that as live is what let
+         the bot spend eight attempts finding out, then blame the stake. */
+      isLive: function () { return session.isLive() && !analysisOnly; },
+
+      /* Why it cannot trade, when the reason is not going to change by
+         waiting. Empty means keep waiting — the socket is simply not up yet. */
+      blocked: function () {
+        return analysisOnly
+          ? "No real options account to trade on — the analysis is live, trading is not."
+          : "";
+      },
       busy: function () { return inFlight; },
       settings: settings,
       nextStake: function () { return settings.martingale ? nextStake : settings.stake; },

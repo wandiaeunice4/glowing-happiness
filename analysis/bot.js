@@ -198,7 +198,16 @@
       var waitedFor = 0;
 
       while (alive()) {
-        if (!host.isLive()) { say("Reconnecting to Deriv…", "warning"); await sleep(1200); continue; }
+        if (!host.isLive()) {
+          /* A socket that is coming back is worth waiting for; a login with
+             nothing to trade on is not, and waiting on it in silence is how
+             this looked like a connection problem. */
+          var why = host.blocked && host.blocked();
+          if (why) { ended = { msg: why, kind: "error" }; break; }
+          say("Reconnecting to Deriv…", "warning");
+          await sleep(1200);
+          continue;
+        }
 
         if (host.busy()) {
           waitedFor += 300;
@@ -247,8 +256,8 @@
           fails++;
           if (fails >= MAX_FAILS) {
             ended = {
-              msg: "Deriv refused " + fails + " trades in a row — stopped. " +
-                   "The stake may be larger than the balance.",
+              msg: "Stopped after " + fails + " refused trades. " +
+                   ((e && e.message) || "The stake may be larger than the balance."),
               kind: "error"
             };
             break;
@@ -380,6 +389,11 @@
         say("Stopped.", "warning");
         return;
       }
+      /* Nothing to trade on is worth saying at the press, not eight refusals
+         later. Only reasons that will not change by waiting stop it here. */
+      var why = host.blocked && host.blocked();
+      if (why) return say(why, "error");
+
       /* Start is a clean slate: a new run id, an emptied ledger, the
          martingale back at the base stake, and the card's own figures
          cleared. Nothing from the last run is carried into this one. */
