@@ -152,6 +152,18 @@
       : Number(n || 0).toFixed(2) + " " + (cur || "USD");
   }
 
+  /* The same figure inside a ROW, where the rail is 340px wide. At eight
+     decimals "0.00000023 BTC" does not fit and ellipsis eats the digits that
+     matter — and the column heading and the totals underneath both name the
+     currency already, so repeating it on every row buys nothing. Two-decimal
+     accounts keep the suffix: it fits, and it always read that way. */
+  function rowMoney(n, cur) {
+    var d = window.EvieCurrency ? window.EvieCurrency.digits(cur) : 2;
+    if (d <= 2) return money(n, cur);
+    return window.EvieCurrency ? window.EvieCurrency.bare(Number(n || 0), cur)
+                               : Number(n || 0).toFixed(d);
+  }
+
   Txn.prototype.render = function () {
     var self = this;
     var body = this.q("[data-rows]");
@@ -170,9 +182,9 @@
               '<span class="tx-out">' + esc(r.exit == null ? "—" : r.exit) + "</span>" +
             "</span>" +
             '<span class="tx-money">' +
-              '<span class="tx-buy">' + money(r.stake, self.currency) + "</span>" +
+              '<span class="tx-buy">' + rowMoney(r.stake, self.currency) + "</span>" +
               '<span class="tx-pl ' + (r.win ? "is-up" : "is-down") + '">' +
-                (r.profit >= 0 ? "+" : "") + money(r.profit, self.currency) +
+                (r.profit >= 0 ? "+" : "") + rowMoney(r.profit, self.currency) +
               "</span>" +
             "</span>" +
           "</li>";
