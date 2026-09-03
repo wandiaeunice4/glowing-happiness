@@ -613,6 +613,7 @@
     var t = C.TYPES[r.type];
     txn.add({
       label: t.label + (t.barrier ? " " + r.barrier : ""),
+      type: r.type,
       market: r.market,
       win: r.win,
       stake: r.stake,

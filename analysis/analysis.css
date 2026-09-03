@@ -367,6 +367,7 @@
   letter-spacing: 0.06em;
   color: var(--ink-faint);
 }
+.txn-head-c { text-align: center; }
 .txn-head-r { text-align: right; }
 
 .txn-rows {
@@ -386,19 +387,44 @@
 }
 
 /* One definition of the columns, used by the header and every row, so the
-   three never drift apart at any width. */
-.txn { --tx-cols: minmax(0, 1.15fr) minmax(0, 0.9fr) minmax(0, 1.05fr); }
+   three never drift apart at any width. Deriv's own ratios. */
+.txn { --tx-cols: 0.8fr 1fr 1.1fr; }
+
+/* ── A row ────────────────────────────────────────────────────────────────
+   Two rows deep, and the type spans both of them:
+
+       ┌──────────┬─────────────┬────────────┐
+       │          │ entry spot  │  buy price │
+       │   type   ├─────────────┼────────────┤
+       │          │ exit spot   │     P/L    │
+       └──────────┴─────────────┴────────────┘
+
+   Which is what makes the three headings true of the row underneath them:
+   one column of type, one of BOTH spots, one of the price and what it made.
+   Laid out flat, "Entry/Exit spot" would be naming two columns at once. */
 
 .tx {
   display: grid;
   grid-template-columns: var(--tx-cols);
-  gap: 10px;
-  align-items: start;
-  padding: 10px 2px;
-  border-bottom: 1px solid var(--line);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "type entry stake"
+    "type exit  pl";
+  grid-row-gap: 3px;
+  column-gap: 10px;
+  align-items: center;
+  padding: 9px 2px;
+  border-top: 1px solid var(--line);
   font-size: 12px;
 }
-.tx:last-child { border-bottom: 0; }
+.tx:first-child { border-top: 0; }
+.tx:hover { background: var(--alt-tint, rgba(0, 0, 0, 0.03)); }
+
+/* A run ends and another begins. Without this, two sessions in one list read
+   as one long one — and the totals underneath are for all of it. */
+.tx-div { padding: 7px 2px; border-top: 1px solid var(--line); }
+.tx-div span { display: block; height: 3px; border-radius: 2px; background: var(--line); }
+.tx-div + .tx { border-top: 0; }
 
 /* The newest trade arrives from the right rather than appearing.
    Two reasons it is worth the twenty lines: a result that simply appears at
@@ -420,25 +446,81 @@
 }
 .tx-none { padding: 26px 0; font-size: 12.5px; color: var(--ink-faint); text-align: center; }
 
-.tx-type { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: center; }
-.tx-dot { width: 8px; height: 8px; border-radius: 50%; grid-row: span 2; }
-.tx-dot--win { background: var(--up); }
-.tx-dot--loss { background: var(--down); }
-.tx-type-t { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tx-type-s { grid-column: 2; font-size: 10.5px; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ── Type: two tiles, side by side, down the whole height of the row ──────
+   Deriv puts a market icon and a trade-type icon here. These are the same two
+   slots in this site's own language: the index's number, and the trade's own
+   two letters in the colour its buttons already carry. Both name themselves
+   in full on hover, as Deriv's do. */
 
-/* Entry above, exit below — the two spots the contract settled between. */
-.tx-spot { display: grid; gap: 2px; font-variant-numeric: tabular-nums; min-width: 0; }
-.tx-spot span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tx-in { color: var(--ink-muted); }
-.tx-out { color: var(--ink-faint); }
+.tx-type { grid-area: type; display: flex; align-items: center; gap: 5px; min-width: 0; }
 
-.tx-money { display: grid; gap: 2px; text-align: right; font-variant-numeric: tabular-nums; min-width: 0; }
-.tx-money span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tx-buy { color: var(--ink-muted); }
-.tx-pl { font-weight: 650; }
-.tx-pl.is-up, .sum-v.is-up { color: var(--up); }
-.tx-pl.is-down, .sum-v.is-down { color: var(--down); }
+.tx-tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  border-radius: 7px;
+  cursor: default;
+}
+.tx-tile--mkt { color: var(--ink-muted); background: var(--surface-2); border: 1px solid var(--line); }
+
+.tx-tile--rise   { color: var(--on-accent); background: var(--up); }
+.tx-tile--fall   { color: var(--on-accent); background: var(--down); }
+.tx-tile--even   { color: var(--on-accent); background: var(--even); }
+.tx-tile--odd    { color: var(--on-accent); background: var(--odd); }
+.tx-tile--over   { color: var(--on-accent); background: var(--over); }
+.tx-tile--under  { color: var(--on-accent); background: var(--under); }
+.tx-tile--match  { color: var(--on-accent); background: var(--match); }
+.tx-tile--differ { color: var(--on-accent); background: var(--differ); }
+
+/* ── The two spots, one above the other ──────────────────────────────────
+   A filled dot for where it came in, a ring for where it went out. The pair
+   is what tells the lines apart without a label on either. */
+
+.tx-entry, .tx-exit {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.tx-entry { grid-area: entry; color: var(--ink-muted); }
+.tx-exit  { grid-area: exit;  color: var(--ink-faint); }
+.tx-entry b, .tx-exit b {
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tx-mk { flex: none; opacity: 0.75; }
+
+/* ── What it cost, and what it made ──────────────────────────────────── */
+
+.tx-stake, .tx-pl {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tx-stake { grid-area: stake; color: var(--ink-muted); }
+
+/* The sign belongs to the outcome, so the stylesheet supplies it and the
+   figure is always the amount. A minus typed into the number would have to
+   agree with the colour beside it; this way it cannot disagree. */
+.tx-pl { grid-area: pl; font-weight: 650; }
+.tx-pl--win { color: var(--up); }
+.tx-pl--win::before { content: "+"; }
+.tx-pl--loss { color: var(--down); }
+.tx-pl--loss::before { content: "-"; }
+
+.sum-v.is-up { color: var(--up); }
+.sum-v.is-down { color: var(--down); }
 
 /* ── the totals ─────────────────────────────────────────────────────── */
 
