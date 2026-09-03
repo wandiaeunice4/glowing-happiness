@@ -26,6 +26,7 @@
     this.root = opts.root;
     this.nameOf = opts.nameOf || function (s) { return s; };
     this.rows = [];
+    this.currency = opts.currency || "USD";
     this.bind();
   }
 
@@ -73,6 +74,13 @@
       self.root.classList.remove("is-open");
       handle.setAttribute("aria-expanded", "false");
     }, ms || 3800);
+  };
+
+  /** Whatever the account is denominated in. Every figure follows it. */
+  Txn.prototype.setCurrency = function (cur) {
+    if (!cur || cur === this.currency) return;
+    this.currency = cur;
+    this.render();
   };
 
   Txn.prototype.reset = function () {
@@ -134,8 +142,14 @@
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  function usd(n) {
-    return Number(n || 0).toFixed(2) + " USD";
+  /* The account's own currency, at its own precision. This printed " USD"
+     against every figure, which is a lie about money on a EUR account and
+     unreadable on a BTC one. The currency is set by app.js when the account
+     is known — see Txn.prototype.setCurrency. */
+  function money(n, cur) {
+    return window.EvieCurrency
+      ? window.EvieCurrency.fmt(Number(n || 0), cur)
+      : Number(n || 0).toFixed(2) + " " + (cur || "USD");
   }
 
   Txn.prototype.render = function () {
@@ -156,23 +170,23 @@
               '<span class="tx-out">' + esc(r.exit == null ? "—" : r.exit) + "</span>" +
             "</span>" +
             '<span class="tx-money">' +
-              '<span class="tx-buy">' + usd(r.stake) + "</span>" +
+              '<span class="tx-buy">' + money(r.stake, self.currency) + "</span>" +
               '<span class="tx-pl ' + (r.win ? "is-up" : "is-down") + '">' +
-                (r.profit >= 0 ? "+" : "") + usd(r.profit) +
+                (r.profit >= 0 ? "+" : "") + money(r.profit, self.currency) +
               "</span>" +
             "</span>" +
           "</li>";
         }).join("")
       : '<li class="tx-none">No transactions yet.</li>';
 
-    this.q("[data-stake]").textContent = usd(t.stake);
-    this.q("[data-payout]").textContent = usd(t.payout);
+    this.q("[data-stake]").textContent = money(t.stake, this.currency);
+    this.q("[data-payout]").textContent = money(t.payout, this.currency);
     this.q("[data-runs]").textContent = t.runs;
     this.q("[data-lost]").textContent = t.lost;
     this.q("[data-won]").textContent = t.won;
 
     var pl = this.q("[data-pl]");
-    pl.textContent = (t.profit >= 0 ? "+" : "") + usd(t.profit);
+    pl.textContent = (t.profit >= 0 ? "+" : "") + money(t.profit, this.currency);
     pl.className = "sum-v " + (t.profit > 0 ? "is-up" : t.profit < 0 ? "is-down" : "");
 
     var badge = this.q("[data-count]");
