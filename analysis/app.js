@@ -1020,6 +1020,11 @@
          card it raises are not printed in dollars on a euro account. */
       currency: currencyOf,
 
+      /* The bot raises the transactions when a run starts. On a phone they are
+         parked at the bottom and the trades would otherwise land out of sight;
+         on a wide screen the rail is already open and this does nothing. */
+      showTransactions: function () { txn.open(); },
+
       /* Live, to the bot, means CAN TRADE — not merely that a socket is open.
          Analysis-only opens a socket for prices on whatever account the login
          has, and placeTrade refuses on it. Reporting that as live is what let
