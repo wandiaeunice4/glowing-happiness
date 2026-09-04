@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": false,
   "trailingSlash": false,
+
+  "functions": {
+    "api/mt5/signals.js": { "maxDuration": 30 }
+  },
+
   "redirects": [
     {
       "source": "/:path*",
@@ -28,7 +33,7 @@
       "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
     },
     {
-      "source": "/(home|analysis|analyss|automatic-ai).html",
+      "source": "/(home|analysis|analyss|automatic-ai|mt5).html",
       "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
     },
     {

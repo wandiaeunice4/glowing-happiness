@@ -218,14 +218,10 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   white-space: nowrap;
 }
 
-/* Present, and plainly not ready. Dimmed rather than hidden so it is clear
-   the feature exists and is coming, and not clickable so nobody tries. */
-.tile--off { opacity: 0.72; cursor: not-allowed; }
-.tile--off:hover { background: var(--surface); border-color: var(--line); }
 /* The MetaTrader mark is a WIDE wordmark, not a square glyph. Squeezed into
    the 42px icon box it came out 24x4 and unreadable, so this tile's box grows
    to fit the logo instead of the logo shrinking to fit the box. */
-.tile--off .tile-icon { width: auto; min-width: 32px; padding: 0 10px; }
+.tile--logo .tile-icon { width: auto; min-width: 32px; padding: 0 10px; }
 .tile-logo { height: 15px; width: auto; max-width: 130px; object-fit: contain; }
 
 /* The MetaTrader wordmark ships white, which disappears on the light theme.
@@ -233,18 +229,6 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .tile-logo--pale { display: none; }
 :root[data-theme="dark"] .tile-logo--ink { display: none; }
 :root[data-theme="dark"] .tile-logo--pale { display: block; }
-
-.tag-off {
-  padding: 3px 9px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--over, #d97706);
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  white-space: nowrap;
-}
 
 /* A blank canvas for a page that has not been built yet. */
 
