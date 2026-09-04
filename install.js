@@ -95,16 +95,76 @@
     document.body.appendChild(wrap);
   }
 
+  /* ── straight after connecting Deriv ─────────────────────────────────────
+   * deriv.js leaves a flag the first time an account is connected. From there
+   * the offer opens on its own, so nobody has to notice the header button or
+   * remember to come back to it.
+   *
+   * No browser lets a page install itself. The one install API there is puts
+   * up the browser's OWN dialog, and Chrome will not open even that outside a
+   * gesture — so this waits for the next touch, tap or key rather than firing
+   * on a timer, which would simply be refused. It listens in the capture phase
+   * and stops nothing: whatever they were pressing still gets its handler, and
+   * prompt() does not block.
+   *
+   * Only where there is something real to open — Chrome's prompt, or an iPhone,
+   * where Add to Home Screen genuinely is the way. On a browser that has
+   * neither, popping a panel of instructions nobody asked for would be worse
+   * than leaving the button where it is.
+   *
+   * The flag is spent before the offer rather than after, so a fault happens on
+   * the one visit it was armed for rather than on every visit after it.
+   */
+  var ARM_KEY = "evie_install_on_connect";
+  var EVENTS = ["pointerdown", "touchstart", "click", "keydown"];
+  var listening = false;
+  var fired = false;
+
+  function done() {
+    listening = false;
+    EVENTS.forEach(function (n) { document.removeEventListener(n, go, true); });
+  }
+
+  /* Called twice on purpose — once when the page is ready and once when Chrome
+     hands over the prompt, because those arrive in either order. Whichever is
+     second finds the listeners already up and leaves them alone. */
+  function go() {
+    if (fired) return;
+    fired = true;
+    done();
+    try { localStorage.removeItem(ARM_KEY); } catch (e) {}
+    if (deferred) {
+      // Straight from the gesture: a timer, even a zero one, is exactly how a
+      // page loses the activation prompt() insists on.
+      click();
+    } else {
+      // Only a panel of instructions, so it can wait for their click first.
+      setTimeout(howTo, 0);
+    }
+  }
+
+  function autoOffer() {
+    if (listening || fired) return;
+    var armed;
+    try { armed = localStorage.getItem(ARM_KEY) === "1"; } catch (e) { return; }
+    if (!armed) return;
+    if (!deferred && !isApple()) return;
+    listening = true;
+    EVENTS.forEach(function (n) { document.addEventListener(n, go, true); });
+  }
+
   function bind() {
     if (installed()) { hide(); return; }
     show();
     buttons().forEach(function (b) { b.addEventListener("click", click); });
+    autoOffer();
   }
 
   global.addEventListener("beforeinstallprompt", function (e) {
     // Without this Chrome shows its own mini-infobar and takes the moment away.
     e.preventDefault();
     deferred = e;
+    autoOffer();          // may well arrive after bind() has already run
   });
 
   global.addEventListener("appinstalled", function () { deferred = null; hide(); });
