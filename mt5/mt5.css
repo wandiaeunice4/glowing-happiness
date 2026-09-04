@@ -12,7 +12,9 @@
    page: the direction you are short, and the stop that protects you.
    ══════════════════════════════════════════════════════════════════════ */
 
-.mt5 { max-width: 1180px; }
+/* Full-bleed, like every other page on the site: the gutter in styles.css is
+   the only thing between the content and the edge of the screen. A centred
+   column here left a wide monitor with a third of itself empty. */
 
 /* ── The eyebrow ────────────────────────────────────────────────────────
    Where you are on the left, when the market was last read on the right. */
@@ -416,6 +418,16 @@
   line-height: 1.65;
 }
 .mt5-disc svg { flex: none; margin-top: 3px; color: var(--blue); }
+
+/* ── Wide ──────────────────────────────────────────────────────────────
+   Past this the page is wider than two cards have any use for, and a signal
+   card stretched to 800px is mostly empty. A third column fills the room the
+   full-bleed layout opened up. */
+
+@media (min-width: 1500px) {
+  .mt5-sigs,
+  .mt5-aside-l { grid-template-columns: repeat(3, 1fr); }
+}
 
 /* ── Narrow ────────────────────────────────────────────────────────────
    Two columns of trade legs on a phone would wrap the prices onto three

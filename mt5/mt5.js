@@ -22,6 +22,11 @@
   var REFRESH_MS = 60000;      // the panel re-reads the market every minute
   var KEY = "evie_mt5_profile";
 
+  /* Where somebody with no MT5 account has to go before any of this is any
+     use to them. Opened once, alongside the first download. */
+  var DERIV_SIGNUP = "https://t.deriv.link?t=72ZF9J9GSCF3";
+  var GOT_EA_KEY = "evie_mt5_got_ea";
+
   /* Drawn before the first response so the choice is never an empty row. The
      server sends its own copy with every answer and that one wins — these are
      the fallback for a first paint and for a feed that is down. */
@@ -223,6 +228,26 @@
   });
 
   el("refresh").addEventListener("click", function () { load(); });
+
+  /* The file is no use without an MT5 account to run it against, and the
+     download itself takes a moment during which there is nothing to look at.
+     So the FIRST time somebody takes the EA, Deriv opens alongside it and
+     they can be signing up while the file lands. Once only — after that they
+     have an account, and a tab they did not ask for is just rude.
+
+     The window is opened inside the click, which is what keeps the browser
+     from treating it as a pop-up. The download is untouched: the link's own
+     default behaviour still runs. */
+  var opened = false;
+  el("get-ea").addEventListener("click", function () {
+    var first;
+    try { first = !localStorage.getItem(GOT_EA_KEY); }
+    catch (e) { first = !opened; }   // private mode: at least not twice a session
+    if (!first) return;
+    opened = true;
+    try { localStorage.setItem(GOT_EA_KEY, "1"); } catch (e) { /* private mode */ }
+    global.open(DERIV_SIGNUP, "_blank", "noopener,noreferrer");
+  });
 
   // A minute of polling behind a hidden tab is a minute of nothing anybody can
   // see, so the clock stops when the page is not on screen and the panel is
