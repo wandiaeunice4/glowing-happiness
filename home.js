@@ -99,10 +99,11 @@
 
   function fillSheet() {
     if (!data) return;
+    /* The same instruction the panel carries, for the narrow screens that see
+       this instead of it. */
     sheetBody.innerHTML = accountsHtml() +
-      '<p class="sheet-note">A bot can only trade the <strong>options</strong> account. ' +
-      "Money in a wallet or MT5 has to be moved across first, and an MT5 balance is " +
-      "not reported here at all.</p>";
+      '<p class="sheet-note">Not seeing your full balance? Transfer it to your ' +
+      "<strong>options</strong> account in your Deriv portfolio and it will show here.</p>";
   }
 
   /* The panel carries its own note and buttons in the markup, so it only ever
