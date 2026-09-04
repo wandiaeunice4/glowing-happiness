@@ -108,6 +108,53 @@ document.documentElement.setAttribute("data-theme","dark");
         "availability": "https://schema.org/InStock"
       },
       "publisher": { "@id": "https://www.evietrader.site/#organization" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.evietrader.site/#faq",
+      "isPartOf": { "@id": "https://www.evietrader.site/#website" },
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Evie Trader really free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. There is no subscription and no card. The bots trade a Deriv account you already own, so the only money involved is the money already in it." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I have to download anything?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Not for Analysis or Automatic AI — those run in the browser. The MT5 bot is different: it is an Expert Advisor file you install in your own MetaTrader 5 terminal, which is what lets it keep trading when your computer is off." }
+        },
+        {
+          "@type": "Question",
+          "name": "Which broker do I need?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Deriv. You connect the account you already have and the bots trade its options balance. The MT5 Expert Advisor runs on your own MetaTrader 5 terminal." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I try it without risking real money?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every Deriv account comes with a demo balance, and the bots trade it exactly as they trade a real one — same logic, same limits, no real money." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Evie see my password?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Connecting happens on Deriv's own login screen and hands back a token that reaches your options account and nothing else. There is no password for us to see, and you can revoke it at any time." }
+        },
+        {
+          "@type": "Question",
+          "name": "What are take profit and stop loss?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Two numbers you set before starting. Take profit is the amount of profit at which the bot stops; stop loss is the amount of loss at which it stops. Whichever comes first ends the session." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I stop a bot once it has started?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, at any time. It also stops itself when your take profit or stop loss is reached, and when the account no longer holds enough to place the next trade." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much money will I make?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Nobody can answer that honestly, and anyone who gives you a number is guessing. Trading carries real risk, losing is a normal outcome, and an automated tool does not change either fact. Set a stop loss you are comfortable with and never trade money you cannot afford to lose." }
+        }
+      ]
     }
   ]
 }
@@ -202,6 +249,105 @@ document.documentElement.setAttribute("data-theme","dark");
         <li><img src="/logos/fundednext.png" alt="FundedNext" /></li>
         <li><img src="/logos/the5ers.svg" alt="The5ers" /></li>
       </ul>
+    </div>
+  </section>
+
+  <!-- ══ How it works ══════════════════════════════════════════════════════
+       Written because Bing would not index this page: at 147 words it was
+       thin enough that Bingbot found the URL and declined it, which is what
+       "Discovered but not crawled" means. That is a real fault, not a
+       formality — a page nobody can find is a page nobody uses.
+
+       Everything below describes the three things that actually exist and
+       nothing that does not. No figures, no returns, no testimonials, and
+       nothing about what a bot might make: the only honest answer to that is
+       in the last question, and it is the one people most need to read. -->
+  <section class="band" id="how">
+    <div class="bleed">
+      <p class="band-k">How it works</p>
+      <h2 class="band-t">Three steps, then it runs on its own</h2>
+
+      <ol class="steps">
+        <li>
+          <span class="step-n" aria-hidden="true">1</span>
+          <h3>Connect your Deriv account</h3>
+          <p>You sign in on Deriv&rsquo;s own page, not ours. Evie never sees a password,
+            and disconnecting takes one click.</p>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">2</span>
+          <h3>Pick a bot</h3>
+          <p><strong>Analysis</strong> reads the market and shows you what it sees before
+            you commit. <strong>Automatic AI</strong> takes the account and trades it for you.
+            <strong>MT5 Bots</strong> is an Expert Advisor you install in your own MetaTrader 5,
+            where it keeps working with this page closed.</p>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">3</span>
+          <h3>Set your limits, then start</h3>
+          <p>Choose a stake, a take profit and a stop loss. The bot stops the moment either
+            one is reached, so you do not have to sit and watch it.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ══ Questions ══════════════════════════════════════════════════════════
+       The questions people actually type, answered plainly. Marked up as a
+       FAQPage in the structured data above, built from exactly these words —
+       so the markup can never claim an answer the page does not show. -->
+  <section class="band band--alt" id="faq">
+    <div class="bleed">
+      <p class="band-k">Questions</p>
+      <h2 class="band-t">The things people ask first</h2>
+
+      <div class="faq">
+        <div class="faq-i">
+          <h3>Is Evie Trader really free?</h3>
+          <p>Yes. There is no subscription and no card. The bots trade a Deriv account you
+            already own, so the only money involved is the money already in it.</p>
+        </div>
+        <div class="faq-i">
+          <h3>Do I have to download anything?</h3>
+          <p>Not for Analysis or Automatic AI &mdash; those run in the browser. The MT5 bot is
+            different: it is an Expert Advisor file you install in your own MetaTrader 5
+            terminal, which is what lets it keep trading when your computer is off.</p>
+        </div>
+        <div class="faq-i">
+          <h3>Which broker do I need?</h3>
+          <p>Deriv. You connect the account you already have and the bots trade its options
+            balance. The MT5 Expert Advisor runs on your own MetaTrader 5 terminal.</p>
+        </div>
+        <div class="faq-i">
+          <h3>Can I try it without risking real money?</h3>
+          <p>Yes. Every Deriv account comes with a demo balance, and the bots trade it exactly
+            as they trade a real one &mdash; same logic, same limits, no real money.</p>
+        </div>
+        <div class="faq-i">
+          <h3>Does Evie see my password?</h3>
+          <p>No. Connecting happens on Deriv&rsquo;s own login screen and hands back a token that
+            reaches your options account and nothing else. There is no password for us to
+            see, and you can revoke it at any time.</p>
+        </div>
+        <div class="faq-i">
+          <h3>What are take profit and stop loss?</h3>
+          <p>Two numbers you set before starting. Take profit is the amount of profit at which
+            the bot stops; stop loss is the amount of loss at which it stops. Whichever comes
+            first ends the session.</p>
+        </div>
+        <div class="faq-i">
+          <h3>Can I stop a bot once it has started?</h3>
+          <p>Yes, at any time. It also stops itself when your take profit or stop loss is
+            reached, and when the account no longer holds enough to place the next trade.</p>
+        </div>
+        <div class="faq-i">
+          <h3>How much money will I make?</h3>
+          <p>Nobody can answer that honestly, and anyone who gives you a number is guessing.
+            Trading carries real risk, losing is a normal outcome, and an automated tool does
+            not change either fact. Set a stop loss you are comfortable with and never trade
+            money you cannot afford to lose.</p>
+        </div>
+      </div>
     </div>
   </section>
 
