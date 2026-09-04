@@ -125,9 +125,6 @@
     EVENTS.forEach(function (n) { document.removeEventListener(n, go, true); });
   }
 
-  /* Called twice on purpose — once when the page is ready and once when Chrome
-     hands over the prompt, because those arrive in either order. Whichever is
-     second finds the listeners already up and leaves them alone. */
   function go() {
     if (fired) return;
     fired = true;
@@ -143,6 +140,9 @@
     }
   }
 
+  /* Called twice on purpose — once when the page is ready and once when Chrome
+     hands over the prompt, because those two arrive in either order. Whichever
+     is second finds the listeners already up and leaves them alone. */
   function autoOffer() {
     if (listening || fired) return;
     var armed;
