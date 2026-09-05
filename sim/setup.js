@@ -152,7 +152,10 @@
      correct the instant it appears. */
   function fill() {
     var last = recall() || {};
-    if (last.balance) $("sim-balance").value = last.balance;
+    /* `!= null`, not a truth test: a balance of zero is a real outcome — it is
+       what a session that ran out looks like — and treating it as "nothing
+       remembered" would hand the money back every time the tab reloaded. */
+    if (last.balance != null) $("sim-balance").value = last.balance;
     if (last.count != null) $("sim-count").value = last.count;
 
     if (last.mode) {
@@ -193,7 +196,10 @@
      rebooted here, BEFORE a line of the page's own code executes. Nothing has
      changed about the order; only about who is asked. */
   var boot = readCard();
-  if (!(boot.balance >= 1)) boot.balance = 1000;
+  /* Zero is allowed through — an account that ran out stays run out, and the
+     card or the home header is where it gets topped back up. Only a value that
+     is not a number at all falls back to the default. */
+  if (!isFinite(boot.balance) || boot.balance < 0) boot.balance = 1000;
   writeCfg(boot);
   global.EvieDeriv.sim.reboot();
 

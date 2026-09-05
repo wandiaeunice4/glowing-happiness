@@ -71,8 +71,10 @@
   function practiceBalance() {
     try {
       var c = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
-      var v = c && Number(c.balance);
-      if (v > 0) return v;
+      var v = c && c.balance != null ? Number(c.balance) : null;
+      /* Zero is a real balance — the one a session that ran out leaves behind
+         — so it is shown rather than quietly replaced with the default. */
+      if (v != null && isFinite(v) && v >= 0) return v;
     } catch (e) {}
     return 1000;
   }

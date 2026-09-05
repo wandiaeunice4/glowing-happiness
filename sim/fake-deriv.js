@@ -78,6 +78,22 @@
 
   var CFG_KEY = "evie_sim_config";
 
+  /* The same remembered settings the setup card writes and the home header
+     types into. The balance is kept here as it moves, so a session picks up
+     where the last one stopped instead of starting over every time the tab is
+     closed. localStorage, deliberately: the rest of a simulation is per-tab
+     and starts clean, but the balance is the running total and losing it on a
+     refresh would make every number on the screen meaningless. */
+  var SETUP_KEY = "evie_sim_setup";
+
+  function persistBalance() {
+    try {
+      var c = JSON.parse(localStorage.getItem(SETUP_KEY) || "null") || {};
+      c.balance = balance;
+      localStorage.setItem(SETUP_KEY, JSON.stringify(c));
+    } catch (e) {}
+  }
+
   function config() {
     var d = {
       balance: 1000,
@@ -670,6 +686,14 @@
     var returned = won ? c.payout : 0;
     var profit = round2(returned - c.price);
     balance = round2(balance + returned);
+
+    /* Written at settlement and nowhere else. The stake comes off the balance
+       at purchase, but a contract still in flight when the tab reloads is a
+       contract that never finished — persisting there would bank the stake
+       and never the payout, so a refresh mid-trade would quietly cost money
+       for a trade nobody saw the end of. Settling is the moment the number is
+       actually true. */
+    persistBalance();
 
     /* Announced down the per-contract subscription if one was opened, and down
        the blanket one if that is what the page is using. A real Deriv sends it
