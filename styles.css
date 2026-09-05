@@ -127,14 +127,27 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* ── Home dashboard ─────────────────────────────────────────────────────── */
 
-.dash { min-height: 100svh; }
+/* A column the height of the window, so the footer sits at the bottom of the
+   screen rather than floating with dead ground beneath it, and so the grid
+   inside can be told to take whatever is left over. */
+.dash { display: flex; flex-direction: column; min-height: 100svh; }
 
-/* Clearing the fixed header and no more. The old value was a third of the
-   viewport height on a laptop, which put the first card below the fold with
-   nothing in the gap. */
-.dash-main { padding-top: clamp(84px, 9vh, 100px); padding-bottom: 56px; }
+/* Clearing the fixed header and no more. The nav is 68px, so that plus a
+   breath is the whole requirement — clamp(84px, 9vh, 100px) was clearing a bar
+   that is 68px tall and spending the difference on nothing, and 56px of bottom
+   padding on a laptop is most of a tile.
+
+   `flex: 1` so this takes the height the header leaves, and a column so the
+   grid inside it can be handed the remainder. */
+.dash-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(68px + clamp(10px, 1.4vh, 18px));
+  padding-bottom: clamp(10px, 1.4vh, 16px);
+}
 .dash-title {
-  margin-bottom: clamp(14px, 1.8vw, 20px);
+  margin-bottom: clamp(10px, 1.3vw, 14px);
   font-size: clamp(1.45rem, 2.4vw, 1.8rem);
   font-weight: 700;
 }
@@ -956,13 +969,29 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .dash-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 400px);
-  gap: clamp(16px, 2vw, 28px);
-  align-items: start;
+  /* minmax(0, 1fr), not the default auto: an auto row is never smaller than its
+     contents, so on a short window the prices panel pushed the page into
+     scrolling instead of scrolling inside itself. This lets the row shrink, and
+     the panel handles its own overflow. */
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(14px, 1.8vw, 24px);
+  /* Stretched, not start-aligned: a column only as tall as its content cannot
+     grow into the space, which is what left a band of empty ground between the
+     last card and the small print. */
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: clamp(12px, 1.6vh, 18px);
 }
-.dash-col { min-width: 0; }
+/* A column too, so the account panel below the tiles can be told to take the
+   rest of it. */
+.dash-col { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 
 .markets {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;   /* so it can be shorter than its list and let it scroll */
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -994,7 +1023,20 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 @keyframes mk-pulse { 50% { opacity: 0.3; } }
 
-.mk-list { display: block; padding: 4px 6px 6px; }
+/* Exactly the height the panel has, no more and no less: whatever is left
+   after the heading. Ten markets show without scrolling wherever there is room
+   for ten, and the list scrolls inside itself where there is not — rather than
+   the page scrolling. */
+.mk-list {
+  display: block;
+  padding: 4px 6px 6px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-hi) transparent;
+}
 
 .mk {
   display: grid;
@@ -1040,8 +1082,16 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 
 @media (max-width: 1180px) {
-  /* No room beside the tiles — the rail goes under them, full width. */
-  .dash-grid { grid-template-columns: minmax(0, 1fr); }
+  /* No room beside the tiles — the rail goes under them, full width.
+
+     Stacked, there is no second column to balance against and nothing above the
+     fold to protect, so everything goes back to its natural height and the page
+     scrolls the way a phone expects. Two rows now, both auto: the single-row
+     track above would have squeezed the first and left the second to fend for
+     itself. */
+  .dash-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; flex: none; }
+  .dash-col { display: block; }
+  .mk-list { flex: none; }
   .markets { max-width: 520px; }
 }
 
@@ -1147,9 +1197,11 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   color: var(--ink-faint);
 }
 
+/* Pinned to the bottom by the auto margin, and as small as a line of small
+   print should be: it is a caution, not a section. */
 .dash-foot {
-  margin-top: 28px;
-  padding-top: 16px;
+  margin-top: auto;
+  padding-top: 10px;
   border-top: 1px solid var(--line);
 }
 .dash-foot .disclaimer { margin: 0; }
@@ -1210,8 +1262,13 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 @media (min-width: 1180px) {
   .acctp {
-    display: block;
-    margin-top: 14px;
+    /* A column that takes the rest of the space under the tiles, so the left
+       side reaches the bottom of the screen the way the prices rail does. */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    margin-top: clamp(10px, 1.2vw, 14px);
     padding: 16px 18px 18px;
     background: var(--surface);
     border: 1px solid var(--line);
