@@ -155,26 +155,95 @@
     });
   });
 
-  /* ── the simulator's door ───────────────────────────────────────────────
+  /* ── the door ───────────────────────────────────────────────────────────
      Three clicks on the "o" of Home. `detail` counts the clicks in a run for
      us, so this is the browser's own idea of a triple click rather than a
      hand-rolled timer that would disagree with it.
 
-     Once open it stays open for the visit: someone who has found it should not
-     have to find it again on the way back from the simulation. */
+     What the three clicks do depends on what this device already knows:
+
+       never been let in  → the bare field appears. The right phrase lets the
+                            device in and switches the mode on in one go.
+       let in, mode off   → straight on. Nobody types the phrase twice.
+       let in, mode on    → off again.
+
+     Either way the only thing the screen says is a one-second flash on the
+     word, and on a phone a one-second buzz. The state itself is remembered for
+     good — a refresh, a closed tab or a closed browser all leave it exactly as
+     it was, and these same three clicks are the only way out. */
 
   var door = $("door");
-  var simCard = $("sim-card");
-  if (door && simCard) {
-    var DOOR_KEY = "evie_sim_door";
-    try { if (sessionStorage.getItem(DOOR_KEY) === "1") simCard.hidden = false; } catch (e) {}
+  var doorKey = $("door-key");
+  var title = $("dash-title");
+  var Mode = window.EvieMode;
 
+  function applyMode() {
+    /* The tiles do double duty rather than a second pair appearing beside
+       them. Only the destination moves — same label, same icon, same styling,
+       nothing added and nothing removed, so the dashboard reads identically
+       whichever way round it is. */
+    if (!Mode) return;
+    var live = Mode.on();
+    var a = document.querySelector('.tiles a[href="/analysis.html"], .tiles a[href="/analyss.html"]');
+    var b = document.querySelector('.tiles a[href="/automatic-ai.html"], .tiles a[href="/automatc-ai.html"]');
+    if (a) a.setAttribute("href", live ? "/analyss.html" : "/analysis.html");
+    if (b) b.setAttribute("href", live ? "/automatc-ai.html" : "/automatic-ai.html");
+  }
+
+  function hideKey() {
+    if (!doorKey) return;
+    doorKey.value = "";
+    doorKey.hidden = true;
+  }
+
+  if (door && Mode) {
     door.addEventListener("click", function (e) {
       if (e.detail < 3) return;
-      simCard.hidden = false;
-      try { sessionStorage.setItem(DOOR_KEY, "1"); } catch (x) {}
+
+      if (!Mode.known()) {
+        if (!doorKey) return;
+        doorKey.hidden = false;
+        doorKey.focus();
+        return;
+      }
+
+      Mode.set(!Mode.on());
+      applyMode();
+      Mode.signal(title);
     });
   }
+
+  if (doorKey && Mode) {
+    doorKey.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") return hideKey();
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+
+      /* Wrong phrase: clear the box and say nothing. No message, no shake, no
+         attempt counter — the field must not confirm it is even a field worth
+         guessing at. */
+      if (!Mode.attempt(doorKey.value)) { doorKey.value = ""; return; }
+
+      hideKey();
+      applyMode();
+      Mode.signal(title);
+      noteAccounts();
+    });
+
+    /* Clicking away puts it back. Anybody who opened it by accident never
+       learns there was anything to open. */
+    doorKey.addEventListener("blur", hideKey);
+  }
+
+  /* Which Deriv accounts were connected when this device was opened. Recorded
+     rather than used: there is no server, so this is a note about who, not a
+     second way in. */
+  function noteAccounts() {
+    if (!Mode || !data || !data.accounts) return;
+    Mode.note(data.accounts.map(function (a) { return a.id; }));
+  }
+
+  applyMode();
 
 
   /* ── reading it ─────────────────────────────────────────────────────────── */

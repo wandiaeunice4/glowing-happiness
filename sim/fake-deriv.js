@@ -655,7 +655,12 @@
 
   /* ── standing in for deriv.js ────────────────────────────────────────── */
 
-  var ACCOUNT = "SIM000001";
+  /* Shaped like an ordinary Deriv options id, because it is shown on screen
+     beside the balance. "SIM000001" announced what the page was to anybody who
+     glanced at the account line, which defeats the point of a mode that is
+     supposed to look like every other day. The value is never compared against
+     anything — it is a label. */
+  var ACCOUNT = "CR7401882";
 
   function boot() {
     var cfg = config();

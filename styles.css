@@ -1149,40 +1149,47 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 }
 .dash-foot .disclaimer { margin: 0; }
 
-/* ══ The simulator's door ══════════════════════════════════════════════════
+/* ══ The door ══════════════════════════════════════════════════════════════
    Three clicks on the "o" of Home. It carries no affordance on purpose — a
-   dotted underline or a cursor change would turn a quiet practice mode into a
-   thing every visitor pokes at. */
+   dotted underline or a cursor change would turn a quiet mode into a thing
+   every visitor pokes at. `cursor: text` is what the rest of a heading already
+   shows, so the letter gives nothing away by looking selectable. */
 
 .door { cursor: text; }
 
-/* Both simulations, side by side: whichever page you came to practise is the
-   one you pick. */
-.sim-card {
-  display: inline-flex;
-  gap: 8px;
-  margin-left: 14px;
+/* The field the first visit asks for. No placeholder, no label, no width worth
+   noticing — it borrows the page's own input colours so that a person who has
+   opened it by accident sees a stray box rather than a prompt. */
+.door-key {
+  width: 6.5em;
+  margin-left: 10px;
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
   vertical-align: middle;
 }
-.sim-card[hidden] { display: none; }
+.door-key:focus { outline: none; border-color: var(--line-hi); }
+.door-key[hidden] { display: none; }
 
-.sim-card a {
-  display: grid;
-  gap: 1px;
-  padding: 8px 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  text-decoration: none;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--ink);
+/* The whole of the announcement: one second on the word, then gone. It fades
+   in and out rather than switching, so a repeat press reads as a deliberate
+   pulse instead of a flicker. Anybody not watching the word misses it, which
+   is the intention. */
+@keyframes door-lit {
+  0%   { color: var(--ink); }
+  22%  { color: var(--blue); }
+  70%  { color: var(--blue); }
+  100% { color: var(--ink); }
 }
-.sim-card a:hover { border-color: var(--line-hi); }
-.sim-card a span {
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--ink-faint);
+.dash-title.lit { animation: door-lit 1s ease-in-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-title.lit { animation-duration: 1ms; color: var(--blue); }
 }
 
 /* ══ The account, on the page ══════════════════════════════════════════════

@@ -853,6 +853,10 @@
   if (key) {
     key.addEventListener("click", function (e) {
       if (e.detail < 3) return;               // the browser counts them for us
+      /* And only inside practice mode. Off, this is three clicks on a letter
+         and nothing else — no hidden control on the site answers a gesture
+         from somebody who has not opened the mode on this device. */
+      if (!window.EvieMode || !window.EvieMode.on()) return;
       if (inFlight) return;                   // not mid-trade
 
       if (!showDemo && !allAccounts.some(function (a) { return a.demo; })) {

@@ -12,10 +12,19 @@ Allow: /icons/
 
 Disallow: /home.html
 Disallow: /analysis.html
-Disallow: /analyss.html
 Disallow: /automatic-ai.html
-Disallow: /sim/
 Disallow: /analysis/
+
+# Two paths are deliberately NOT listed here, and their absence is the point.
+# robots.txt is world-readable, so naming a page you would rather nobody found
+# is an index of exactly what to go and look at. Both carry noindex in their own
+# head and both send anyone who has not opened the mode straight back, which
+# keeps them out of results without publishing the addresses.
+#
+# Disallow would in fact be the weaker option: a crawler told not to fetch a
+# page never reads the noindex on it, so a URL someone links to can still
+# surface. Letting it fetch, redirect and read the tag is what actually removes
+# them.
 
 # IndexNow key: 9a23fb3eb59f730783ec614a76ccbce3 — served at
 # /9a23fb3eb59f730783ec614a76ccbce3.txt for Bing, Yandex and Seznam.

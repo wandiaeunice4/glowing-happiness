@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Automatic AI simulation | Evie</title>
+<title>Automatic AI | Evie</title>
 <meta name="robots" content="noindex,nofollow" />
 <meta name="theme-color" content="#f3f4f7" />
 <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -15,6 +15,18 @@
    Light is the default when nothing has been chosen. */
 (function(){try{var t=localStorage.getItem("evie_theme");
 document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}})();
+</script>
+<script>
+/* The gate, before anything else on the page runs.
+   Reached without the mode on — a bookmark, a guessed URL, a back button after
+   switching it off — and this is simply not a page. It replaces rather than
+   assigns, so Back does not bounce between the two. Inline and first because a
+   redirect that waits on a downloaded script is a redirect that flashes the
+   page it was meant to prevent. */
+(function(){try{
+  if(localStorage.getItem("evie_ui_k")==="1"&&localStorage.getItem("evie_ui_m")==="1")return;
+}catch(e){}
+location.replace("/home.html");})();
 </script>
 <link rel="stylesheet" href="/styles.css" />
 <link rel="stylesheet" href="/sim/sim.css" />
