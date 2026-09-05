@@ -761,7 +761,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   .reveal { opacity: 1; transform: none; }
 }
 
-/* ── Automatic AI ───────────────────────────────────────────────────────── */
+/* ── Eviematic Ai ───────────────────────────────────────────────────────── */
 
 /* Settings is a control column at a readable width; Session takes whatever is
    left. On a wide screen that fills the page instead of leaving the right half
@@ -1328,7 +1328,7 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 /* ══ Switch ════════════════════════════════════════════════════════════════
    The martingale on the analysis page, the take profit and stop loss on the
    bot, "first trade loses" on both simulation cards. It lived in analysis.css
-   until the Automatic AI simulation used one without loading that file and
+   until the Eviematic Ai simulation used one without loading that file and
    the control simply was not there — a switch you cannot see is a setting
    nobody knows they have. */
 

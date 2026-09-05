@@ -1,5 +1,5 @@
 /**
- * EVIE — recovery drills for the Automatic AI simulation.
+ * EVIE — recovery drills for the Eviematic Ai simulation.
  *
  * With losses set to none, nothing loses. The bot then spends the whole
  * session on Differs at the base stake and never once shows the thing it is
