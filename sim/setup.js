@@ -147,9 +147,11 @@
     $("sim-balance").value = (dollars + cents / 100).toFixed(2);
   });
 
-  /* Put last time's answers back, before anything is read from the fields. */
-  var last = recall();
-  if (last) {
+  /* Put the remembered answers into the fields. Done up front rather than when
+     the card opens, because `describe()` reads them and the card must be
+     correct the instant it appears. */
+  function fill() {
+    var last = recall() || {};
     if (last.balance) $("sim-balance").value = last.balance;
     if (last.count != null) $("sim-count").value = last.count;
 
@@ -162,27 +164,81 @@
     if (!!last.firstLoss !== firstOn) $("sim-first").click();
   }
 
-  $("sim-go").addEventListener("click", function () {
-    var balance = Number($("sim-balance").value);
-    if (isNaN(balance) || balance < 1) return say("Give the simulation a balance to start with.");
+  fill();
 
-    var cfg = {
-      balance: balance,
+  /** What the fields currently say, as the shape fake-deriv.js reads. */
+  function readCard() {
+    return {
+      balance: Number($("sim-balance").value),
       currency: "USD",
       mode: mode,
       count: Math.max(0, Math.round(Number($("sim-count").value) || 0)),
       firstLoss: $("sim-first").getAttribute("aria-checked") === "true"
     };
+  }
 
+  function writeCfg(cfg) {
     try { sessionStorage.setItem(global.EvieDeriv.sim.CFG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+
+  /* ── straight in ─────────────────────────────────────────────────────────
+     The card used to stand in front of the page and nothing ran until it was
+     answered. That made this the one place on the site with a step real
+     trading does not have: pick Analysis, get a form. It now boots on the
+     settings already remembered, so choosing Analysis opens Analysis — the
+     same as every other day.
+
+     Holding the scripts back still matters and still happens: app.js opens its
+     socket the moment it runs, so the balance and the plan are written and
+     rebooted here, BEFORE a line of the page's own code executes. Nothing has
+     changed about the order; only about who is asked. */
+  var boot = readCard();
+  if (!(boot.balance >= 1)) boot.balance = 1000;
+  writeCfg(boot);
+  global.EvieDeriv.sim.reboot();
+
+  $("setup").hidden = true;
+  document.body.classList.add("sim-running");
+  loadNext(0, function () { /* the page is now the analysis page */ });
+
+  /* ── the card, on demand ─────────────────────────────────────────────────
+     Three clicks on the account badge in the header, the same gesture the rest
+     of the site uses for the things it does not advertise. */
+
+  function openCard() { $("setup").hidden = false; refresh(); }
+  function closeCard() { $("setup").hidden = true; }
+
+  var badge = $("acct-badge");
+  if (badge) {
+    badge.style.cursor = "default";
+    badge.addEventListener("click", function (e) {
+      if (e.detail < 3) return;
+      openCard();
+    });
+  }
+
+  /* Escape, and the space around the card. A panel opened by a gesture needs
+     an obvious way back out, or the only exit is the browser's Back button. */
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !$("setup").hidden) closeCard();
+  });
+  $("setup").addEventListener("click", function (e) {
+    if (e.target === this) closeCard();
+  });
+  if ($("sim-close")) $("sim-close").addEventListener("click", closeCard);
+
+  /* Applying restarts. The settings are read before the first tick, so there
+     is no honest way to change the balance or the run of losses underneath a
+     session already in flight — and a reload now lands straight back in the
+     simulation rather than on the card, so it costs nothing to be strict. */
+  $("sim-go").addEventListener("click", function () {
+    var cfg = readCard();
+    if (isNaN(cfg.balance) || cfg.balance < 1) {
+      return say("Give the simulation a balance to start with.");
+    }
+    writeCfg(cfg);
     remember(cfg);
-    // fake-deriv.js read the old plan when it loaded; this is the new one.
-    global.EvieDeriv.sim.reboot();
-
-    $("setup").hidden = true;
-    document.body.classList.add("sim-running");
-
-    loadNext(0, function () { /* the page is now the analysis page */ });
+    global.location.reload();
   });
 
   refresh();

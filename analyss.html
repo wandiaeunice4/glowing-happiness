@@ -36,17 +36,20 @@ location.replace("/home.html");})();
 <body class="dash sim-body">
 
 <!-- ── the conditions ───────────────────────────────────────────────────
-     Shown before the page runs. Nothing behind it has started: no socket, no
-     ticks, no bot — so the balance and the run of losses are set before the
-     first trade rather than being applied to one already in flight. -->
-<div class="setup" id="setup">
+     Not shown on the way in. The page boots on the settings it already
+     remembers, so choosing this page opens this page and nothing stands in
+     front of it. Three clicks on the account badge in the header bring the
+     card up; applying reloads, which is what keeps the promise that the
+     balance and the run of losses are settled before the first tick rather
+     than swapped under a session already in flight. -->
+<div class="setup" id="setup" hidden>
   <div class="setup-card" role="dialog" aria-modal="true" aria-labelledby="setup-t">
     <div class="setup-head">
       <div>
         <p class="setup-k">Practice, with no money and no Deriv</p>
         <h1 class="setup-t" id="setup-t">Set up the simulation</h1>
       </div>
-      <a class="btn btn-line" href="/home.html">Home</a>
+      <button class="btn btn-line" id="sim-close" type="button">Close</button>
     </div>
 
     <div class="setup-body">
