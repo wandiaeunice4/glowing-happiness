@@ -364,6 +364,13 @@
 
   session.onMessage(function (d) {
     if (d.error) {
+      /* AlreadySubscribed is not a failure. A reconnect re-sends the balance
+         subscription, and if the old one outlived the socket Deriv answers
+         "You are already subscribed to balance for account …" — which is Deriv
+         confirming we have exactly what we asked for. Showing it as a red error
+         told people something had gone wrong when nothing had, and named their
+         account back at them while doing it. Swallowed, deliberately. */
+      if (d.error.code === "AlreadySubscribed") return;
       if (!trading) status(d.error.message || "Deriv refused that request.", "error");
       return;
     }

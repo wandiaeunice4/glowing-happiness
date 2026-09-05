@@ -813,7 +813,12 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 
 /* Which account is about to be traded. Real money says so, in pink. */
 .risk { margin-top: 14px; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); }
-.risk--real { color: var(--pink); }
+/* The real-account line reads as reassurance, not alarm: it is confirming the
+   trades are the genuine article on the account the trader chose. Pink made a
+   correct, expected state look like something had gone wrong — and it is the
+   state most people are deliberately in. Green is what the rest of the app
+   uses for "this is working". */
+.risk--real { color: var(--ok); }
 
 .status { margin-top: 8px; font-size: 13px; line-height: 1.5; color: var(--ink-muted); min-height: 1.2em; }
 .status--error { color: var(--pink); }

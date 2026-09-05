@@ -94,17 +94,27 @@
     }
     if (mode === "consecutive") {
       if (!n) return first ? "The first trade loses. Everything else wins." : "Every trade wins.";
-      return (first ? "Starting with the first trade, " : "After the first win, ") +
-        n + " trade" + (n === 1 ? "" : "s") + " in a row lose. Everything after that wins.";
+      return (first ? "Starting with the first trade, " : "After a few wins, ") +
+        n + " trade" + (n === 1 ? "" : "s") + " in a row lose — at a different point each run. " +
+        "Everything after that wins.";
     }
-    return (first ? "The first trade loses, then " : "") +
-      n + " in every 10 trades lose, in a random order.";
+    /* Five is the ceiling and the card says so rather than quietly ignoring a
+       six: with a win required between any two losses, five in ten is simply
+       the most that fits. */
+    var capped = Math.min(5, n);
+    return (first ? "The first trade loses, then about " : "About ") +
+      capped + " in every 10 lose, spread at random and never two together" +
+      (n > 5 ? " (five is the most that fits)" : "") + "." +
+      (first ? "" : " The first trade always wins.");
   }
 
   function refresh() {
     var needsCount = mode !== "none";
     $("sim-count-fld").hidden = !needsCount;
     $("sim-count-k").textContent = mode === "random" ? "How many in every 10" : "How many in a row";
+    /* Random tops out at five for the reason above; in a row has no such
+       limit, since consecutive losses are the entire point of it. */
+    $("sim-count").max = mode === "random" ? "5" : "10";
     say(describe());
   }
 

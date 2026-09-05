@@ -58,12 +58,48 @@
 
   /* ── the one number on the page ─────────────────────────────────────────── */
 
+  /* ── the practice balance ───────────────────────────────────────────────
+     Shared with the setup card, deliberately: it reads the same remembered
+     figure this writes, so a balance typed up here is the one already in the
+     field when a run is set up, and a balance changed down there is the one
+     that shows up here afterwards. One number, two places to reach it, no
+     second store to fall out of step. localStorage, so it survives a refresh
+     and a closed tab the way the mode itself does. */
+
+  var SETUP_KEY = "evie_sim_setup";
+
+  function practiceBalance() {
+    try {
+      var c = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
+      var v = c && Number(c.balance);
+      if (v > 0) return v;
+    } catch (e) {}
+    return 1000;
+  }
+
+  function savePracticeBalance(v) {
+    try {
+      var c = JSON.parse(localStorage.getItem(SETUP_KEY) || "null") || {};
+      c.balance = v;
+      localStorage.setItem(SETUP_KEY, JSON.stringify(c));
+    } catch (e) {}
+  }
+
   function paint() {
+    if (Mode && Mode.on()) {
+      amountEl.textContent = money(practiceBalance(), "USD");
+      fillPanel();
+      return;
+    }
     amountEl.textContent = data && data.real ? money(data.real.amount, data.real.currency) : "—";
     fillPanel();
   }
 
   function fail(message) {
+    /* In practice mode the figure up there is not Deriv's to report on, so a
+       failed portfolio call must not blank it — the balance shown is the one
+       being typed and simulated with. */
+    if (Mode && Mode.on()) return;
     amountEl.textContent = "Unavailable";
     amountEl.title = message || "Could not reach Deriv.";
   }
@@ -188,6 +224,40 @@
     var b = document.querySelector('.tiles a[href="/automatic-ai.html"], .tiles a[href="/automatc-ai.html"]');
     if (a) a.setAttribute("href", live ? "/analyss.html" : "/analysis.html");
     if (b) b.setAttribute("href", live ? "/automatc-ai.html" : "/automatic-ai.html");
+
+    /* The number top right becomes typeable, and nothing about it moves —
+       contenteditable rather than an input, so it keeps the same font, weight,
+       colour and position and the header does not reflow the moment the mode
+       comes on. Off again and it is a plain read-only figure showing the real
+       balance. */
+    if (!amountEl) return;
+    amountEl.contentEditable = live ? "true" : "false";
+    amountEl.spellcheck = false;
+    if (!live) amountEl.removeAttribute("contenteditable");
+    paint();
+  }
+
+  /* Enter commits, Escape abandons. Both blur, and the blur is what saves —
+     so clicking away commits too, which is what people expect of a figure they
+     have just typed over. */
+  if (amountEl) {
+    amountEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); amountEl.blur(); }
+      else if (e.key === "Escape") { e.preventDefault(); paint(); amountEl.blur(); }
+    });
+
+    amountEl.addEventListener("blur", function () {
+      if (!Mode || !Mode.on()) return;
+      /* Strip whatever the formatter put in — the currency word, the thousands
+         separators — and keep the number. A value that parses to nothing, or to
+         less than a dollar, is not a balance worth starting from, so the old one
+         simply stays. */
+      var raw = String(amountEl.textContent || "").replace(/[^0-9.]/g, "");
+      var v = Number(raw);
+      if (!isFinite(v) || v < 1) return paint();
+      savePracticeBalance(Math.round(v * 100) / 100);
+      paint();
+    });
   }
 
   function hideKey() {
