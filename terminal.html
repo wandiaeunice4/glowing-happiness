@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Trade | Evie</title>
+<meta name="robots" content="noindex,nofollow" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="/favicon.ico" sizes="48x48" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<script>
+/* Applied before paint: a saved dark choice must not flash a light page first.
+   Light is the default when nothing has been chosen. */
+(function(){try{var t=localStorage.getItem("evie_theme");
+document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}})();
+</script>
+<script>
+/* The gate, before anything else on the page runs.
+   Reached without the mode on — a bookmark, a guessed URL, a back button after
+   switching it off — and this is simply not a page. It replaces rather than
+   assigns, so Back does not bounce between the two. Inline and first because a
+   redirect that waits on a downloaded script is a redirect that flashes the
+   page it was meant to prevent. */
+(function(){try{
+  if(localStorage.getItem("evie_ui_k")==="1"&&localStorage.getItem("evie_ui_m")==="1")return;
+}catch(e){}
+location.replace("/home.html");})();
+</script>
+<link rel="stylesheet" href="/terminal/terminal.css" />
+</head>
+<body>
+
+<!-- ── the terminal ──────────────────────────────────────────────────────
+     MetaTrader 5 mobile's layout: a toolbar, one scrolling body, five tabs.
+     On anything wider than a phone the whole thing stays phone-shaped and
+     centred, because that is the app being reproduced. -->
+<div class="tm" id="tm">
+ <div class="tm-shell">
+
+  <header class="tm-bar">
+    <button class="tm-ico" id="tm-drawer" type="button" aria-label="Menu">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="tm-title">
+      <b id="tm-heading">Trade</b>
+      <span>7401882 — Deriv-Server, Hedge</span>
+    </div>
+    <button class="tm-ico" id="tm-new" type="button" aria-label="New order">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </header>
+
+  <div class="tm-body">
+
+    <!-- Equity first and largest, the four supporting figures paired under it.
+         Balance is not the headline: equity is what you would have if you
+         closed everything now, which is the number that matters while a
+         position is open. -->
+    <section class="tm-acct">
+      <div class="tm-eq num" id="tm-eq">0.00<small>USD</small></div>
+      <div class="tm-pl num" id="tm-pl"></div>
+      <dl class="tm-grid num">
+        <div><dt>Balance:</dt><dd id="tm-bal">0.00</dd></div>
+        <div><dt>Margin:</dt><dd id="tm-mar">0.00</dd></div>
+        <div><dt>Free margin:</dt><dd id="tm-free">0.00</dd></div>
+        <div><dt>Level:</dt><dd id="tm-lvl">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="tm-pane on" id="tm-pane-trade">
+      <div class="tm-sec"><span>Positions</span><span class="num" id="tm-postotal"></span></div>
+      <div id="tm-pos"></div>
+    </section>
+
+    <section class="tm-pane" id="tm-pane-history">
+      <div class="tm-sec"><span>Profit</span><span class="num" id="tm-histotal"></span></div>
+      <div id="tm-hist"></div>
+    </section>
+
+    <!-- The three tabs without screens yet. The bar has to carry all five or
+         the shape is wrong, and the two that want a price chart are worth
+         building properly rather than sketching. -->
+    <section class="tm-pane" id="tm-pane-quotes"><p class="tm-empty">Quotes</p></section>
+    <section class="tm-pane" id="tm-pane-chart"><p class="tm-empty">Chart</p></section>
+    <section class="tm-pane" id="tm-pane-messages"><p class="tm-empty">No messages</p></section>
+
+  </div>
+
+  <!-- ── the order ticket ────────────────────────────────────────────────
+       Symbol, then the price pair, then volume, then the two stops, then the
+       buttons — the order the real ticket uses, because it is the order the
+       decision gets made in. Sell sits left and Buy right, matching the pair
+       above them so the eye never crosses over. -->
+  <div class="tm-sheet" id="tm-order" hidden>
+    <div class="tm-card tm-card--full">
+      <header class="tm-bar">
+        <button class="tm-ico" type="button" data-close="tm-order" aria-label="Back">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="tm-title"><b>New Order</b><span>Market Execution</span></div>
+      </header>
+
+      <div class="tm-fld">
+        <label for="tm-osym">Symbol</label>
+        <select id="tm-osym"></select>
+      </div>
+
+      <div class="tm-quote">
+        <div class="sell"><span>Sell</span><b class="num" id="tm-obid">0</b></div>
+        <div class="tm-spread num" id="tm-ospread">0</div>
+        <div class="buy"><span>Buy</span><b class="num" id="tm-oask">0</b></div>
+      </div>
+
+      <div class="tm-fld">
+        <label for="tm-ovol">Volume</label>
+        <div class="tm-step">
+          <button type="button" id="tm-vminus" aria-label="Less">&minus;</button>
+          <input id="tm-ovol" type="text" inputmode="decimal" value="0.10" />
+          <button type="button" id="tm-vplus" aria-label="More">&plus;</button>
+        </div>
+      </div>
+
+      <div class="tm-fld">
+        <label for="tm-osl">Stop Loss</label>
+        <input id="tm-osl" type="text" inputmode="decimal" placeholder="not set" />
+      </div>
+      <div class="tm-fld">
+        <label for="tm-otp">Take Profit</label>
+        <input id="tm-otp" type="text" inputmode="decimal" placeholder="not set" />
+      </div>
+
+      <div class="tm-go">
+        <button class="sell" type="button" id="tm-sell">Sell by Market</button>
+        <button class="buy" type="button" id="tm-buy">Buy by Market</button>
+      </div>
+      <p class="tm-note">A buy fills at the ask and is valued at the bid.</p>
+    </div>
+  </div>
+
+  <!-- Tapping a position opens the same short menu the phone app opens. -->
+  <div class="tm-sheet" id="tm-posmenu" hidden>
+    <div class="tm-card">
+      <p class="tm-menu-h" id="tm-menu-h"></p>
+      <div class="tm-fld">
+        <label for="tm-msl">Stop Loss</label>
+        <input id="tm-msl" type="text" inputmode="decimal" placeholder="not set" />
+      </div>
+      <div class="tm-fld">
+        <label for="tm-mtp">Take Profit</label>
+        <input id="tm-mtp" type="text" inputmode="decimal" placeholder="not set" />
+      </div>
+      <div class="tm-menu">
+        <button type="button" id="tm-save">Modify Position</button>
+        <button type="button" class="danger" id="tm-close">Close Position</button>
+        <button type="button" data-close="tm-posmenu">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- The drawer, kept to what this account can actually do. -->
+  <div class="tm-sheet" id="tm-side" hidden>
+    <div class="tm-card">
+      <p class="tm-menu-h">7401882 — Deriv-Server</p>
+      <div class="tm-menu">
+        <button type="button" id="tm-deposit">Deposit</button>
+        <button type="button" id="tm-reset">Reset account</button>
+        <button type="button" id="tm-exit">Exit</button>
+        <button type="button" data-close="tm-side">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tm-toast" id="tm-toast"></div>
+
+  <nav class="tm-tabs">
+    <button class="tm-tab" type="button" data-tab="quotes">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      Quotes
+    </button>
+    <button class="tm-tab" type="button" data-tab="chart">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 8h3M7 14h3M16 6v14M16 9h3M16 16h3"/></svg>
+      Chart
+    </button>
+    <button class="tm-tab" type="button" data-tab="trade">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg>
+      Trade
+    </button>
+    <button class="tm-tab" type="button" data-tab="history">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7"/><path d="M3.5 4v4h4"/><path d="M12 8v4.5l3 1.7"/></svg>
+      History
+    </button>
+    <button class="tm-tab" type="button" data-tab="messages">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 3z"/></svg>
+      Messages
+    </button>
+  </nav>
+
+ </div>
+</div>
+
+<script src="/terminal/engine.js"></script>
+<script src="/terminal/terminal.js"></script>
+<script src="/theme.js"></script>
+</body>
+</html>

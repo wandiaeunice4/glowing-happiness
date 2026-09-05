@@ -1,0 +1,367 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   EVIE — the terminal.
+
+   MetaTrader 5 mobile, rebuilt: the same screen order, the same blocks in the
+   same places, the same two-column rows, the same blue-buy / red-sell, the
+   same five tabs along the bottom. Somebody who uses MT5 on a phone should be
+   able to work this without looking twice.
+
+   The icons are drawn here rather than lifted — same shapes a tab bar needs,
+   our own strokes. Nothing in this file carries MetaQuotes' marks.
+
+   It is deliberately NOT themed to the rest of the site: this is a terminal,
+   and a terminal that quietly restyles itself to match the page that opened it
+   is not the thing being reproduced. Light ground, grey chrome, one blue.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.tm, .tm * { box-sizing: border-box; }
+
+.tm {
+  --bg:      #ffffff;
+  --panel:   #f2f2f2;
+  --bar:     #ffffff;
+  --line:    #e0e0e0;
+  --line-2:  #cfcfcf;
+  --ink:     #101010;
+  --ink-2:   #6d6d6d;
+  --ink-3:   #9a9a9a;
+  --blue:    #1666c8;   /* buy, and every active state */
+  --red:     #d63333;   /* sell, and every loss */
+  --green:   #1a9c4b;
+  --head:    #f7f7f7;
+
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.35 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.tm[hidden] { display: none; }
+
+:root[data-theme="dark"] .tm {
+  --bg: #1c1c1c; --panel: #262626; --bar: #212121;
+  --line: #333333; --line-2: #3d3d3d;
+  --ink: #ececec; --ink-2: #a8a8a8; --ink-3: #7a7a7a;
+  --head: #242424;
+}
+
+/* Numbers line up in columns or the whole screen reads as noise. */
+.tm .num { font-variant-numeric: tabular-nums; }
+
+/* ── The top bar ──────────────────────────────────────────────────────────
+   Title on the left after the drawer button, actions on the right. Fixed
+   height, because everything below measures itself against what is left. */
+
+.tm-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 4px;
+  background: var(--bar);
+  border-bottom: 1px solid var(--line);
+}
+.tm-ico {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  flex: 0 0 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tm-ico:active { background: var(--panel); }
+.tm-title { flex: 1; min-width: 0; padding-left: 6px; }
+.tm-title b { display: block; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.tm-title span { display: block; font-size: 12px; color: var(--ink-2); }
+
+/* ── The body ─────────────────────────────────────────────────────────────
+   One scrolling area between the bar and the tabs. */
+
+.tm-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.tm-pane { display: none; }
+.tm-pane.on { display: block; }
+
+/* ── The account block ───────────────────────────────────────────────────
+   MT5 puts equity first and largest, with the four supporting figures paired
+   off underneath it. Balance is not the headline — equity is, because equity
+   is what you would have if you closed everything now. */
+
+.tm-acct { padding: 14px 16px 12px; background: var(--head); border-bottom: 1px solid var(--line); }
+.tm-eq { font-size: 27px; font-weight: 600; letter-spacing: -0.02em; }
+.tm-eq small { font-size: 15px; font-weight: 500; color: var(--ink-2); margin-left: 4px; }
+.tm-pl { margin-top: 1px; font-size: 14px; font-weight: 600; }
+.tm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 18px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.tm-grid div { display: flex; justify-content: space-between; gap: 10px; }
+.tm-grid dt { color: var(--ink-2); }
+.tm-grid dd { margin: 0; }
+
+/* ── Section headers ─────────────────────────────────────────────────────
+   The grey strip that separates Positions from Orders, carrying the group
+   total on the right. */
+
+.tm-sec {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  background: var(--panel);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ── A position ──────────────────────────────────────────────────────────
+   Two lines, three columns. Symbol and direction top left, volume and the two
+   prices bottom left, profit right and vertically centred — which is the
+   layout that lets you read a list of ten of them at a glance. */
+
+.tm-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  background: var(--bg);
+}
+.tm-row:active { background: var(--panel); }
+.tm-row-h { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+.tm-sym { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+.tm-side { font-size: 13px; font-weight: 600; }
+.tm-side--buy { color: var(--blue); }
+.tm-side--sell { color: var(--red); }
+.tm-sub { font-size: 12.5px; color: var(--ink-2); }
+.tm-money {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: right;
+}
+.up { color: var(--green); }
+.down { color: var(--red); }
+
+.tm-empty { padding: 44px 24px; text-align: center; color: var(--ink-3); font-size: 14px; }
+
+/* ── The tab bar ─────────────────────────────────────────────────────────
+   Five, evenly divided, icon over label, the active one blue. Padded for the
+   home indicator on a phone that has one. */
+
+.tm-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--bar);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tm-tab {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 7px 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+.tm-tab.on { color: var(--blue); }
+.tm-tab svg { display: block; }
+
+/* ── Sheets ──────────────────────────────────────────────────────────────
+   New Order and the position menu both arrive from the bottom, which is where
+   the phone app puts them. */
+
+.tm-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.38);
+}
+.tm-sheet[hidden] { display: none; }
+.tm-card {
+  background: var(--bg);
+  border-radius: 14px 14px 0 0;
+  max-height: 92%;
+  overflow-y: auto;
+  animation: tm-up 0.16s ease-out;
+}
+@keyframes tm-up { from { transform: translateY(14px); opacity: 0.6; } }
+.tm-card--full { border-radius: 0; height: 100%; max-height: 100%; }
+
+.tm-menu { padding: 6px 0; }
+.tm-menu button {
+  display: block;
+  width: 100%;
+  padding: 15px 20px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+.tm-menu button:active { background: var(--panel); }
+.tm-menu .danger { color: var(--red); }
+.tm-menu-h { padding: 14px 20px 6px; font-size: 13px; color: var(--ink-2); border-bottom: 1px solid var(--line); }
+
+/* ── New Order ───────────────────────────────────────────────────────────
+   Symbol, then the price pair, then volume, then the two stops, then the two
+   buttons — the order the real ticket uses, because it is the order the
+   decision is made in. */
+
+.tm-fld {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.tm-fld label { font-size: 14.5px; color: var(--ink-2); }
+.tm-fld select,
+.tm-fld input {
+  flex: 1;
+  min-width: 0;
+  max-width: 58%;
+  padding: 7px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tm-fld select { text-align: left; }
+.tm-fld input:focus, .tm-fld select:focus { outline: none; border-color: var(--blue); }
+
+/* The volume stepper: minus, the number, plus. */
+.tm-step { display: flex; align-items: center; gap: 0; }
+.tm-step button {
+  width: 40px; height: 38px;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tm-step button:first-child { border-radius: 6px 0 0 6px; }
+.tm-step button:last-child { border-radius: 0 6px 6px 0; }
+.tm-step button:active { background: var(--panel); }
+.tm-step input {
+  width: 88px;
+  max-width: none;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  text-align: center;
+}
+
+/* The live pair, sell on the left and buy on the right — the same sides as
+   the buttons underneath, so the eye never has to cross over. */
+.tm-quote {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--head);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+.tm-quote b { display: block; font-size: 25px; font-weight: 600; letter-spacing: -0.02em; }
+.tm-quote span { display: block; font-size: 11.5px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.tm-quote .sell b { color: var(--red); }
+.tm-quote .buy b { color: var(--blue); }
+.tm-spread { font-size: 12px; color: var(--ink-2); }
+
+.tm-go { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 16px 18px; }
+.tm-go button {
+  padding: 15px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.tm-go .sell { background: var(--red); }
+.tm-go .buy { background: var(--blue); }
+.tm-go button:active { opacity: 0.85; }
+.tm-note { padding: 0 16px 16px; font-size: 12.5px; color: var(--ink-3); text-align: center; }
+
+/* ── The toast ───────────────────────────────────────────────────────────
+   MT5 confirms a fill with a brief line at the bottom and no dialog to
+   dismiss, which is the whole reason it feels fast. */
+
+.tm-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 82px;
+  z-index: 9;
+  transform: translate(-50%, 6px);
+  max-width: calc(100% - 32px);
+  padding: 11px 18px;
+  border-radius: 22px;
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  font-size: 13.5px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.tm-toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ── Wider than a phone ──────────────────────────────────────────────────
+   The app is a phone app, so on a desktop it stays phone-shaped and centred
+   rather than stretching a tab bar across a monitor. */
+
+@media (min-width: 620px) {
+  .tm {
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #3a3a3a;
+  }
+  .tm-shell {
+    width: 400px;
+    height: min(860px, 96vh);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg);
+    border-radius: 14px;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+  }
+}
+.tm-shell { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; overflow: hidden; }
