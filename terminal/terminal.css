@@ -109,12 +109,16 @@
 }
 .tm-ico:active { opacity: 0.55; }
 .tm-h { flex: 1; min-width: 0; padding-left: 8px; }
-.tm-h b { display: block; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
+.tm-h b { display: block; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
 .tm-h span { display: block; font-size: 15px; color: var(--ink-2); }
 .tm-h span:empty { display: none; }
 /* The actions are a row. .tm-ico is a grid box, which is block-level, so
    without this each screen's icons stack down the right-hand edge. */
 #tm-actions { display: flex; align-items: center; }
+/* Charts drops the title and spreads its controls across the whole bar. */
+.tm-bar--chart .tm-h { display: none; }
+.tm-bar--chart #tm-actions { flex: 1; justify-content: space-around; }
+.tm-tf { width: auto; flex: 0 0 auto; padding: 0 8px; font-size: 17px; font-weight: 500; }
 
 /* ── the body ────────────────────────────────────────────────────────────── */
 
@@ -130,10 +134,10 @@
 .tm-lead {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  padding: 7px 16px;
+  gap: 8px;
+  padding: 8px 16px;
 }
-.tm-lead dt { font-size: 16px; font-weight: 500; white-space: nowrap; }
+.tm-lead dt { font-size: 17px; font-weight: 700; white-space: nowrap; }
 .tm-lead i {
   flex: 1;
   height: 4px;
@@ -144,8 +148,8 @@
 }
 .tm-lead dd {
   margin: 0;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 700;
   white-space: nowrap;
 }
 .tm-rule { height: 1px; margin: 6px 0 0; background: var(--line); }
@@ -165,7 +169,7 @@
 .tm-q:active { background: var(--pill); }
 .tm-q-chg { grid-column: 1; font-size: 13px; color: var(--ink-2); }
 .tm-q-chg b { font-weight: 400; }
-.tm-q-name { grid-column: 1; font-size: 21px; font-weight: 500; letter-spacing: -0.01em; }
+.tm-q-name { grid-column: 1; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
 .tm-q-meta { grid-column: 1; font-size: 13px; color: var(--ink-2); }
 .tm-q-meta i { font-style: normal; margin: 0 4px 0 7px; letter-spacing: -0.1em; }
 
@@ -176,8 +180,8 @@
 /* The signature: 1.16 **13** ². The middle pair is the size of the row, the
    head is a size down, and the final digit is raised and small. */
 .px { font-size: 17px; font-weight: 500; color: var(--ink-2); white-space: nowrap; }
-.px b { font-size: 26px; font-weight: 500; color: var(--ink); letter-spacing: -0.02em; }
-.px sup { font-size: 14px; font-weight: 500; color: var(--ink); vertical-align: super; line-height: 0; }
+.px b { font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+.px sup { font-size: 14px; font-weight: 700; color: var(--ink); vertical-align: super; line-height: 0; }
 .up { color: var(--blue); }
 .down { color: var(--red); }
 
@@ -193,10 +197,10 @@
 }
 .tm-row:active { background: var(--pill); }
 .tm-row-h { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-.tm-row-h b { font-size: 17px; font-weight: 500; }
+.tm-row-h b { font-size: 17px; font-weight: 700; }
 .tm-row-h span { font-size: 14px; }
 .tm-row-sub { font-size: 13.5px; color: var(--ink-2); }
-.tm-row-v { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: 17px; font-weight: 500; text-align: right; }
+.tm-row-v { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: 17px; font-weight: 700; text-align: right; }
 
 .tm-empty { padding: 40px 24px; text-align: center; color: var(--ink-2); font-size: 15px; }
 
@@ -210,9 +214,9 @@
   background: transparent;
   color: var(--ink-2);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -256,16 +260,25 @@
 /* ── Charts ──────────────────────────────────────────────────────────────── */
 
 .tm-chart { position: relative; height: 100%; }
-.tm-chart svg { display: block; width: 100%; }
+/* The plot only. As a descendant rule this also matched the little caret
+   drawn inside the overlay and stretched it to the full width. */
+.tm-chart > svg { display: block; width: 100%; height: auto; }
 .tm-chart-tag {
   position: absolute;
-  top: 8px; left: 10px;
+  top: 8px; left: 12px;
   font-size: 14px;
   line-height: 1.35;
+  white-space: nowrap;   /* the symbol, its caret and the timeframe are one line */
   pointer-events: none;
 }
-.tm-chart-tag b { color: var(--blue); font-weight: 500; }
-.tm-chart-tag span { display: block; color: var(--ink); }
+.tm-chart-tag b { display: block; color: var(--blue); font-weight: 500; }
+.tm-chart-tag b .c { margin: 0 5px; color: var(--ink-2); vertical-align: middle; }
+/* The timeframe is white; only the symbol is blue. */
+.tm-chart-tag b .tf { color: var(--ink); }
+/* Direct children only. As a descendant rule this also caught the caret span
+   inside the symbol line, which turned it into a block and broke "EURUSD ▾ M5"
+   across three lines. */
+.tm-chart-tag > span { display: block; color: var(--ink); }
 
 /* ── the tab bar ─────────────────────────────────────────────────────────
    Five columns. The middle one is the balance and carries no word. */
@@ -317,21 +330,25 @@
 .tm-drawer {
   position: absolute;
   inset: 0 auto 0 0;
-  width: 87%;
-  max-width: 340px;
-  background: var(--raise);
+  width: 89%;
+  max-width: 348px;
+  /* The same ground as the page, not a lifted panel — in the app the drawer
+     is distinguished by the strip of screen left beside it, nothing else. */
+  background: var(--bg);
   overflow-y: auto;
   animation: tm-in 0.17s ease-out;
 }
 @keyframes tm-in { from { transform: translateX(-16px); opacity: 0.5; } }
 
-.tm-acct { position: relative; padding: 14px 16px 0; overflow: hidden; }
+.tm-acct { position: relative; padding: 13px 16px 0; overflow: hidden; }
 /* Below the ribbon rather than under it. */
-#tm-add { margin-top: 22px; }
-.tm-acct-r { display: flex; align-items: flex-start; gap: 14px; }
-.tm-avatar { flex: 0 0 46px; width: 46px; height: 46px; }
+#tm-add { margin-top: 20px; }
+.tm-acct-r { display: flex; align-items: flex-start; gap: 15px; }
+/* Its own box rather than a flex item that can be squeezed: the balls fill the
+   square, and `flex-shrink` at 0 keeps a long account name from crushing it. */
+.tm-avatar { flex: 0 0 44px; width: 44px; height: 44px; display: block; }
 .tm-acct-t { flex: 1; min-width: 0; padding-top: 2px; }
-.tm-acct-t b { display: block; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.tm-acct-t b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
 .tm-acct-t span {
   display: block;
   font-size: 15px;
@@ -355,9 +372,9 @@
    triangle, so the word sits on it the way it does in the app. */
 .tm-demo {
   position: absolute;
-  top: 9px; right: -36px;
-  width: 128px;
-  padding: 3px 0;
+  top: 12px; right: -32px;
+  width: 108px;
+  padding: 2px 0;
   transform: rotate(45deg);
   background: #35a600;
   color: #fff;
@@ -369,20 +386,20 @@
 .tm-item {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 27px;
   width: 100%;
-  padding: 13px 18px;
+  padding: 11px 20px;
   border: 0;
   background: transparent;
   color: var(--ink);
   font: inherit;
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 700;
   text-align: left;
   cursor: pointer;
 }
 .tm-item:active { background: var(--pill); }
-.tm-item svg { flex: 0 0 26px; color: var(--ink); }
+.tm-item svg { flex: 0 0 22px; width: 22px; height: 22px; color: var(--ink); }
 .tm-item .grow { flex: 1; }
 .tm-badge {
   min-width: 24px;

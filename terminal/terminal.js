@@ -103,14 +103,18 @@
   var ICON = {
     sort: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V5M5 8l3-3 3 3M16 4v15M13 16l3 3 3-3"/></svg>',
     newOrder: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9 14h6"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" width="29" height="29" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>',
     pencil: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/></svg>',
-    currency: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.4 9.2a2.7 2.7 0 0 0-4.6 1.7c0 2.6 4.8 1.6 4.8 4a2.7 2.7 0 0 1-4.7 1.6"/><path d="M12 6.4v11.2"/></svg>',
+    /* Two arcs around an S — the symbol filter, not a dollar sign in a ring. */
+    currency: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 9.6A8.7 8.7 0 0 0 5.6 5.6"/><path d="M3.6 14.4a8.7 8.7 0 0 0 14.8 4"/><path d="M5.6 2.4v3.4h3.4M18.4 21.6v-3.4H15"/><path d="M14 9.6a2.4 2.4 0 0 0-4.1 1.5c0 2.3 4.3 1.4 4.3 3.6a2.4 2.4 0 0 1-4.2 1.4"/></svg>',
     calendar: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/><circle cx="9" cy="13.5" r="1" fill="currentColor" stroke="none"/><circle cx="12.5" cy="13.5" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="13.5" r="1" fill="currentColor" stroke="none"/></svg>',
     mqid: '<svg viewBox="0 0 34 20" width="34" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="32" height="16" rx="3"/><text x="17" y="13.6" text-anchor="middle" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" font-family="Roboto, Arial, sans-serif">MQID</text></svg>',
     search: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
     cross: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3v18M3 12h18"/></svg>',
-    indicator: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3 0 3-10 6-10s3 10 6 10 3-7 6-7"/></svg>'
+    indicator: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3 0 3-10 6-10s3 10 6 10 3-7 6-7"/></svg>',
+    /* The split disc, and the two-tone tag beside it. */
+    period: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="9.5" fill="#2f6fd0"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="#d93a2b"/><circle cx="12" cy="12" r="9.5" fill="none" stroke="#000" stroke-opacity="0.25"/></svg>',
+    objects: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2.5" y="6.5" width="19" height="11" rx="2.5" fill="#d93a2b"/><rect x="12" y="6.5" width="9.5" height="11" rx="2.5" fill="#2f6fd0"/><circle cx="8" cy="12" r="2.1" fill="#fff"/></svg>'
   };
 
   var BARS = {
@@ -130,12 +134,17 @@
     }).join("");
     /* The chart's toolbar is its own — a crosshair, an indicator and the
        timeframe where the title would be. */
+    /* Charts has no title at all: the burger sits on the left and five
+       controls are spread across the rest of the bar, evenly, which is why it
+       reads as a chart toolbar rather than a screen header. */
+    document.querySelector(".tm-bar").classList.toggle("tm-bar--chart", tab === "charts");
     if (tab === "charts") {
-      $("tm-title").textContent = "";
       $("tm-actions").innerHTML =
         '<button class="tm-ico" type="button">' + ICON.cross + "</button>" +
         '<button class="tm-ico" type="button">' + ICON.indicator + "</button>" +
-        '<button class="tm-ico" type="button" style="width:auto;padding:0 10px;font-size:16px;font-weight:500">M5</button>';
+        '<button class="tm-ico tm-tf" type="button">M5</button>' +
+        '<button class="tm-ico" type="button">' + ICON.period + "</button>" +
+        '<button class="tm-ico" type="button">' + ICON.objects + "</button>";
     }
   }
 
@@ -193,61 +202,99 @@
 
   /* ── Charts ────────────────────────────────────────────────────────────── */
 
+  /* The line under the symbol in the app's own overlay. */
+  var DESC = {
+    "EURUSD": "Euro vs US Dollar",
+    "GBPUSD": "Great Britain Pound vs US Dollar",
+    "USDJPY": "US Dollar vs Japanese Yen",
+    "XAUUSD": "Gold vs US Dollar"
+  };
+
   function drawChart() {
     var bars = T.bars(chartSym);
     var s = T.symbol(chartSym);
     if (!bars.length || !s) return;
 
-    var W = 360, H = 420, padR = 62, padB = 22;
+    /* The plot is a bordered box with the price scale OUTSIDE it on the right
+       and the times underneath — not a bare grid bleeding to the edges. */
+    var W = 360, H = 470;
+    var boxL = 3, boxT = 3, boxR = 296, boxB = 432;
+    var boxW = boxR - boxL, boxH = boxB - boxT;
+
     var lo = Infinity, hi = -Infinity;
     bars.forEach(function (b) { if (b.l < lo) lo = b.l; if (b.h > hi) hi = b.h; });
     var span = (hi - lo) || 1;
-    lo -= span * 0.08; hi += span * 0.08; span = hi - lo;
+    lo -= span * 0.12; hi += span * 0.12; span = hi - lo;
 
-    var plotW = W - padR, plotH = H - padB;
-    var step = plotW / bars.length;
-    var y = function (v) { return plotH - (v - lo) / span * plotH; };
+    var step = boxW / bars.length;
+    var y = function (v) { return boxT + boxH - (v - lo) / span * boxH; };
 
     var grid = "";
-    for (var g = 0; g <= 6; g++) {
-      var gy = (plotH / 6) * g;
-      grid += '<line x1="0" y1="' + gy + '" x2="' + plotW + '" y2="' + gy +
-        '" stroke="currentColor" stroke-opacity="0.16" stroke-dasharray="2 4"/>';
-      var label = (hi - (span / 6) * g).toFixed(s.digits);
-      grid += '<text x="' + (plotW + 6) + '" y="' + (gy + 4) +
-        '" font-size="11" fill="currentColor" fill-opacity="0.75">' + label + "</text>";
+    var ROWS = 12;
+    for (var g = 0; g <= ROWS; g++) {
+      var gy = boxT + (boxH / ROWS) * g;
+      grid += '<line x1="' + boxL + '" y1="' + gy + '" x2="' + boxR + '" y2="' + gy +
+        '" stroke="currentColor" stroke-opacity="0.14" stroke-dasharray="1.5 4"/>';
+      grid += '<text x="' + (boxR + 8) + '" y="' + (gy + 4) +
+        '" font-size="11.5" fill="currentColor" fill-opacity="0.8">' +
+        (hi - (span / ROWS) * g).toFixed(s.digits) + "</text>";
+    }
+    /* Vertical rules every ten bars, with the time under each. */
+    var times = "";
+    for (var v = 0; v < bars.length; v += 15) {
+      var vx = boxL + v * step;
+      grid += '<line x1="' + vx + '" y1="' + boxT + '" x2="' + vx + '" y2="' + boxB +
+        '" stroke="currentColor" stroke-opacity="0.14" stroke-dasharray="1.5 4"/>';
+      var d = new Date(bars[v].t);
+      var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      times += '<text x="' + (vx + 2) + '" y="' + (boxB + 17) +
+        '" font-size="10.5" fill="currentColor" fill-opacity="0.8">' +
+        d.getDate() + " " + MON[d.getMonth()] + " " +
+        String(d.getHours()).padStart(2, "0") + ":" +
+        String(d.getMinutes()).padStart(2, "0") + "</text>";
     }
 
     var candles = bars.map(function (b, i) {
-      var x = i * step + step / 2;
-      var up = b.c >= b.o;
-      var col = up ? "#26a69a" : "#ef5350";
+      var x = boxL + i * step + step / 2;
+      var col = b.c >= b.o ? "#26a69a" : "#e2483c";
       var top = y(Math.max(b.o, b.c));
       var bot = y(Math.min(b.o, b.c));
-      var w = Math.max(1.4, step * 0.62);
+      var w = Math.max(1.6, step * 0.56);
       return '<line x1="' + x + '" y1="' + y(b.h) + '" x2="' + x + '" y2="' + y(b.l) +
-          '" stroke="' + col + '" stroke-width="1"/>' +
+          '" stroke="' + col + '" stroke-width="1.1"/>' +
         '<rect x="' + (x - w / 2) + '" y="' + top + '" width="' + w +
           '" height="' + Math.max(1, bot - top) + '" fill="' + col + '"/>';
     }).join("");
 
-    /* The two price lines the app draws across the chart, with their labels
-       boxed against the axis: red for the ask, teal for the bid. */
-    var bidY = y(T.bid(s)), askY = y(T.ask(s));
-    var lines =
-      '<line x1="0" y1="' + askY + '" x2="' + plotW + '" y2="' + askY + '" stroke="#ef5350" stroke-width="1"/>' +
-      '<rect x="' + plotW + '" y="' + (askY - 9) + '" width="' + padR + '" height="18" fill="#ef5350"/>' +
-      '<text x="' + (plotW + 4) + '" y="' + (askY + 4) + '" font-size="11" fill="#fff">' + T.ask(s).toFixed(s.digits) + "</text>" +
-      '<line x1="0" y1="' + bidY + '" x2="' + plotW + '" y2="' + bidY + '" stroke="#26a69a" stroke-width="1"/>' +
-      '<rect x="' + plotW + '" y="' + (bidY - 9) + '" width="' + padR + '" height="18" fill="#26a69a"/>' +
-      '<text x="' + (plotW + 4) + '" y="' + (bidY + 4) + '" font-size="11" fill="#fff">' + T.bid(s).toFixed(s.digits) + "</text>";
+    /* Ask in red and bid in teal, each carrying its price in a filled tag that
+       sits over the scale. */
+    function level(v, col) {
+      var ly = y(v);
+      return '<line x1="' + boxL + '" y1="' + ly + '" x2="' + boxR + '" y2="' + ly +
+          '" stroke="' + col + '" stroke-width="1"/>' +
+        '<rect x="' + boxR + '" y="' + (ly - 9.5) + '" width="' + (W - boxR) +
+          '" height="19" fill="' + col + '"/>' +
+        '<text x="' + (boxR + 5) + '" y="' + (ly + 4.5) +
+          '" font-size="11.5" fill="#fff">' + v.toFixed(s.digits) + "</text>";
+    }
 
     $("tm-chart").innerHTML =
-      '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" style="height:' + H + 'px">' +
-        grid + candles + lines +
+      '<svg viewBox="0 0 ' + W + " " + H + '">' +
+        grid + times + candles +
+        level(T.ask(s), "#e2483c") + level(T.bid(s), "#26a69a") +
+        '<rect x="' + boxL + '" y="' + boxT + '" width="' + boxW + '" height="' + boxH +
+          '" fill="none" stroke="currentColor" stroke-opacity="0.45"/>' +
       "</svg>" +
-      '<div class="tm-chart-tag"><b>' + esc(chartSym) + " &#9662; M5</b><span>" +
-        esc(chartSym) + "</span></div>";
+      '<div class="tm-chart-tag">' +
+        /* The caret is drawn, not typed: the glyph is missing from enough
+           fallback fonts that it came out as a dash. */
+        "<b>" + esc(chartSym) +
+          '<svg class="c" viewBox="0 0 10 10" width="9" height="9" aria-hidden="true">' +
+          '<path d="M1 3.5h8L5 8z" fill="currentColor"/></svg>' +
+          '<span class="tf">M5</span></b>' +
+        "<span>" + esc(DESC[chartSym] || chartSym) + "</span>" +
+        "<span>Market closed</span>" +
+      "</div>";
   }
 
   /* ── History ───────────────────────────────────────────────────────────── */
