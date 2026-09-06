@@ -54,9 +54,32 @@
   SYMBOLS.forEach(function (s) {
     book[s.name] = {
       name: s.name, digits: s.digits, size: s.size, vol: s.vol,
-      spread: s.spread, price: s.price, prev: s.price
+      spread: s.spread, price: s.price, prev: s.price,
+      /* What the Quotes row needs beside the pair: where the session opened,
+         how far it has been either way since, and when the last tick landed. */
+      open24: s.price, low: s.price, high: s.price, time: Date.now(),
+      bars: []
     };
   });
+
+  /* ── candles ─────────────────────────────────────────────────────────────
+     Seeded backwards from the current price so a chart opened for the first
+     time is not an empty box waiting for sixty ticks to go by. Each bar walks
+     the price the same way a tick does, then the series is reversed — which
+     leaves the last bar sitting exactly on the live price. */
+  function seedBars(s, n) {
+    var out = [];
+    var c = s.price;
+    for (var i = 0; i < n; i++) {
+      var o = c * (1 + (Math.random() - 0.5) * s.vol * 9);
+      var hi = Math.max(o, c) * (1 + Math.random() * s.vol * 5);
+      var lo = Math.min(o, c) * (1 - Math.random() * s.vol * 5);
+      out.push({ o: o, h: hi, l: lo, c: c, t: Date.now() - i * 300000 });
+      c = o;
+    }
+    return out.reverse();
+  }
+  Object.keys(book).forEach(function (n) { book[n].bars = seedBars(book[n], 60); });
 
   function point(sym) { return Math.pow(10, -sym.digits); }
   function round(sym, v) { return Number(v.toFixed(sym.digits)); }
@@ -84,7 +107,16 @@
     var s = null;
     try { s = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
     if (!s || typeof s.balance !== "number") {
-      s = { balance: seedBalance(), positions: [], deals: [], ticket: 100000000, prices: null };
+      /* A funded account has a deposit behind it. Without one History shows
+         "Deposit 0.00" beside a balance of a hundred thousand, and no opening
+         line — which is not what an account that has been funded looks like. */
+      var opening = seedBalance();
+      s = { balance: opening, positions: [], deals: [], ticket: 100000000, prices: null };
+      s.deals.push({
+        ticket: ++s.ticket, symbol: "", type: "balance", volume: 0,
+        open: 0, close: 0, profit: opening,
+        openTime: Date.now(), closeTime: Date.now()
+      });
     }
     s.positions = s.positions || [];
     s.deals = s.deals || [];
@@ -111,13 +143,37 @@
      volatility. Not a model of anything — just a tape that moves the way a
      tape moves, so a position's profit changes while you watch it. */
 
+  var barTicks = 0;
+
   function step() {
     Object.keys(book).forEach(function (n) {
       var s = book[n];
       var g = (Math.random() + Math.random() + Math.random() - 1.5) * 2;
       s.prev = s.price;
       s.price = Math.max(point(s), s.price * (1 + g * s.vol));
+      s.time = Date.now();
+      if (s.price > s.high) s.high = s.price;
+      if (s.price < s.low) s.low = s.price;
+
+      /* The last bar tracks the live price; a new one starts every so often,
+         which is what makes the chart advance rather than only wobble. */
+      var bar = s.bars[s.bars.length - 1];
+      if (bar) {
+        bar.c = s.price;
+        if (s.price > bar.h) bar.h = s.price;
+        if (s.price < bar.l) bar.l = s.price;
+      }
     });
+
+    if (++barTicks >= 12) {
+      barTicks = 0;
+      Object.keys(book).forEach(function (n) {
+        var s = book[n];
+        s.bars.push({ o: s.price, h: s.price, l: s.price, c: s.price, t: Date.now() });
+        if (s.bars.length > 90) s.bars.shift();
+      });
+    }
+
     sweep();
     save();
   }
@@ -254,8 +310,24 @@
     save();
   }
 
+  /** Everything a Quotes row shows, computed rather than stored. */
+  function quote(s) {
+    var pts = Math.round((s.price - s.open24) / point(s));
+    return {
+      name: s.name, digits: s.digits, spread: s.spread,
+      bid: bid(s), ask: ask(s),
+      low: round(s, s.low), high: round(s, s.high),
+      points: pts,
+      percent: s.open24 ? (s.price - s.open24) / s.open24 * 100 : 0,
+      time: s.time
+    };
+  }
+
   global.EvieTerminal = {
     symbols: function () { return Object.keys(book).map(function (n) { return book[n]; }); },
+    quote: function (n) { return quote(book[n]); },
+    quotes: function () { return Object.keys(book).map(function (n) { return quote(book[n]); }); },
+    bars: function (n) { return (book[n] || { bars: [] }).bars; },
     symbol: function (n) { return book[n]; },
     bid: bid, ask: ask, point: point, round: round,
     step: step,
@@ -267,7 +339,8 @@
     deposit: deposit, setBalance: setBalance,
     leverage: LEVERAGE,
     reset: function () {
-      state = { balance: seedBalance(), positions: [], deals: [], ticket: 100000000, prices: null };
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      state = load();
       save();
     }
   };
