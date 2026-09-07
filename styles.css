@@ -1091,8 +1091,20 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
      itself. */
   .dash-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; flex: none; }
   .dash-col { display: block; }
-  .mk-list { flex: none; }
   .markets { max-width: 520px; }
+
+  /* An ordinary block again, and this is not cosmetic.
+
+     Stacked, the rail stands at its full height and has nothing to scroll
+     inside itself — but `overflow-y: auto` still made it a scroll container,
+     and `overscroll-behavior: contain` on a scroll container stops the gesture
+     reaching the page. So a swipe that began anywhere on the card scrolled
+     neither the card, which had nowhere to go, nor the page. On a phone the
+     card is most of the screen, which is why the page seemed to lock near the
+     footer. Both properties belong to the desktop layout, where the list
+     really does scroll within a fixed panel, so they are dropped here rather
+     than removed above. */
+  .mk-list { flex: none; overflow: visible; overscroll-behavior: auto; }
 }
 
 /* The light/dark button. Icon plus word, so it is not a mystery glyph. */
