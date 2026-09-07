@@ -46,6 +46,7 @@
     riskMode: "each",   // "each" position risks the percentage, or "all" share it
     riskPct: 1,
     commission: 0,      // per lot, per round turn
+    leverage: 400,      // the account's, capped further by each instrument's own
     days: 5
   };
 
@@ -146,7 +147,15 @@
     var deposit = Number(cfg.deposit);
     var target = Number(cfg.balance);
     if (!isFinite(deposit) || deposit <= 0) return { error: "Set a deposit first." };
-    if (!isFinite(target) || target <= 0) target = deposit;
+
+    /* Leave the balance alone and it behaves like a real account: the deposit
+       is what you start with, and the trading moves it from there. Set it to
+       something other than the deposit and it becomes a target the run is
+       scaled to reach. Deciding by whether it still equals the deposit is what
+       lets one field do both without a switch beside it. */
+    var grow = !isFinite(target) || target <= 0 ||
+               Math.abs(target - deposit) < 0.005;
+    if (grow) target = deposit;
 
     var n = Math.max(0, Math.min(500, Math.round(cfg.trades)));
     var pct = Math.max(0.01, Math.min(100, Number(cfg.riskPct) || 1));
@@ -204,7 +213,7 @@
     raw.forEach(function (t) { fixed += t.swap - t.commission; grossSum += t.gross; });
     var wanted = (target - deposit) - fixed;
 
-    if (raw.length) {
+    if (raw.length && !grow) {
       if (Math.abs(grossSum) > 1e-6) {
         var k = wanted / grossSum;
         /* A negative factor would turn every winner into a loser and back, which
@@ -250,7 +259,7 @@
        and keeps the column adding up exactly. */
     var sum = deals.reduce(function (a, d) { return a + d.profit; }, 0);
     var drift = Math.round(((target - deposit) - sum) * 100) / 100;
-    if (deals.length && Math.abs(drift) >= 0.01) {
+    if (!grow && deals.length && Math.abs(drift) >= 0.01) {
       deals[0].profit = Math.round((deals[0].profit + drift) * 100) / 100;
       var t0 = raw.filter(function (t) { return t.openTime === deals[0].openTime; })[0];
       if (t0) {
@@ -308,7 +317,7 @@
       });
     }
 
-    return { deals: deals, balance: balance, opens: opens };
+    return { deals: deals, balance: balance, opens: opens, grew: grow };
   }
 
   /* ── out ──────────────────────────────────────────────────────────────── */
@@ -321,11 +330,17 @@
     defaults: function () { return JSON.parse(JSON.stringify(DEFAULTS)); },
 
     run: function (cfg) {
+      var Tm0 = T();
+      if (Tm0 && Tm0.setLeverage) Tm0.setLeverage(cfg.leverage || 400);
       var out = build(cfg);
       if (out.error) return out;
       var Tm = T();
       if (!Tm || !Tm.applyRun) return { error: "Terminal not ready." };
       Tm.applyRun(Number(cfg.deposit), out.balance, out.deals, out.opens);
+      /* In grow mode the balance is an outcome, not an input, so it is left
+         equal to the deposit — writing the result back would silently turn the
+         next run into a targeted one. */
+      if (out.grew) cfg.balance = Number(cfg.deposit);
       save(cfg);
       return { count: out.deals.length, open: Tm.positions().length, balance: out.balance };
     },

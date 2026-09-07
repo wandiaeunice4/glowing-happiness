@@ -29,7 +29,14 @@
   "use strict";
 
   var KEY = "evie_terminal";
-  var LEVERAGE = 500;
+  var LEVERAGE = 400;
+
+  /* The account's leverage. MT5 has two and uses the tighter of them: the
+     account's, set by the broker, and the instrument's own cap. An account at
+     1:400 does not get 1:6000 on Volatility 5 because the symbol allows it —
+     the account is the ceiling. Margin here is worked out against whichever
+     binds. */
+  var accountLeverage = LEVERAGE;
 
   /* The instruments, with the two numbers that decide everything: how many
      decimals a price carries, and how much one lot is worth. Volatility
@@ -216,7 +223,10 @@
   }
 
   function marginFor(s, volume, price) {
-    var lev = s.leverage || LEVERAGE;
+    var lev = Math.min(accountLeverage || LEVERAGE, s.leverage || LEVERAGE);
+    /* Notional in the account's currency, over the leverage that binds.
+       For EURUSD the base is euros and the rate converts it; for USDJPY the
+       base is already dollars, so the rate must not be applied. */
     return (s.usdBase ? volume * s.size : volume * s.size * price) / lev;
   }
 
@@ -557,7 +567,16 @@
     profitOf: profitOf,
     open: open, close: close, modify: modify,
     deposit: deposit, setBalance: setBalance,
-    leverage: LEVERAGE,
+    leverage: function () { return accountLeverage; },
+    setLeverage: function (n) {
+      n = Number(n);
+      if (isFinite(n) && n > 0) accountLeverage = Math.round(n);
+    },
+    /* What actually binds for this instrument, which is the tighter of the two. */
+    leverageFor: function (name) {
+      var s = book[name];
+      return s ? Math.min(accountLeverage, s.leverage || accountLeverage) : accountLeverage;
+    },
     snapVolume: snapVolume, stepOf: stepOf, volDigits: volDigits,
     specOf: function (n) { return book[n] || null; },
     reset: function () {

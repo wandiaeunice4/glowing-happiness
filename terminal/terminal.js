@@ -560,6 +560,7 @@
     $("tm-sim-trades").value = c.trades;
     $("tm-sim-open").value = c.open;
     $("tm-sim-risk").value = c.riskPct;
+    $("tm-sim-lev").value = c.leverage;
     $("tm-sim-comm").value = c.commission;
     $("tm-sim-days").value = c.days;
     document.querySelectorAll("[data-risk]").forEach(function (b) {
@@ -591,7 +592,10 @@
     el.textContent =
       "Contract " + sym.size + " · volume " + sym.minVol + "–" + sym.maxVol +
       " · leverage 1:" + sym.leverage +
-      " · swap " + sw + " a night, tripled Wednesday.";
+      " · swap " + sw + " a night, tripled Wednesday" +
+      " · margin at 1:" + T.leverageFor(sym.name) +
+      (sym.leverage < (T.leverage() || 400)
+        ? " (this instrument caps below the account)" : "") + ".";
     $("tm-sim-sub").textContent = sym.name;
   }
 
@@ -603,6 +607,7 @@
     c.trades = Math.max(0, Math.round(Number($("tm-sim-trades").value) || 0));
     c.open = Math.max(0, Math.round(Number($("tm-sim-open").value) || 0));
     c.commission = Math.max(0, Number($("tm-sim-comm").value) || 0);
+    c.leverage = Math.max(1, Math.round(Number($("tm-sim-lev").value) || 400));
     c.riskPct = Number($("tm-sim-risk").value) || 1;
     c.days = Math.max(1, Math.round(Number($("tm-sim-days").value) || 1));
     var on = document.querySelector("[data-risk].on");
@@ -863,6 +868,13 @@
        Prices first, then the repaint timer, then the first draw. Even if that
        draw fails, the socket is open and the timer is running, so the next tick
        repaints and the screen comes back by itself. */
+
+    /* The account's leverage is part of the account, so it is restored before
+       anything is priced — margin on a saved position must not be worked out at
+       a default the account is not on. */
+    if (global.EvieSim && T.setLeverage) {
+      T.setLeverage(global.EvieSim.settings().leverage || 400);
+    }
 
     if (global.EvieFeed) {
       global.EvieFeed.start(function () {
