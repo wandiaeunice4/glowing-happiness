@@ -96,11 +96,10 @@
     if (sym.usdBase) perLot = perLot / sym.price;
     if (!(perLot > 0)) return sym.minVol;
 
-    var step = sym.minVol || 0.01;
-    var v = Math.round((risk / perLot) / step) * step;
-    v = Math.max(sym.minVol, Math.min(sym.maxVol, v));
-    /* Snapping leaves a float tail: 0.30000000000000004 lots is not a size. */
-    return Number(v.toFixed(6));
+    /* One snapper, the engine's, so a simulated size and a hand-placed one
+       obey the same instrument rules. This had its own copy and they could
+       drift. */
+    return T().snapVolume(sym, risk / perLot);
   }
 
   /**

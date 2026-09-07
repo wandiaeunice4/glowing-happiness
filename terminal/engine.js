@@ -180,6 +180,41 @@
      formula to decide whether an order could be afforded, and it did not learn
      the USDJPY case when marginOf did. The order was then refused for want of
      margin it would never actually have used. */
+  /**
+   * Volume held to what this instrument actually accepts.
+   *
+   * Deriv publishes a minimum and a maximum per instrument and they are not
+   * alike: Volatility 50 starts at 4 lots, Volatility 25 (1s) at 0.005, gold at
+   * 0.01. It does not publish a step, but the minimum is the step — a minimum
+   * of 0.005 could not be expressed on a 0.01 step at all, which is what makes
+   * those varied figures (0.005, 0.05, 0.2, 4, 10) the grid rather than
+   * arbitrary floors.
+   *
+   * Everything here used to be `Math.round(v * 100) / 100` against a flat floor
+   * of 0.01, which was wrong three ways at once: it let 0.10 lots of an
+   * instrument whose minimum is 4 through, it rounded a 0.005 minimum up to
+   * 0.01, and it never looked at the maximum at all.
+   */
+  function stepOf(s) { return s && s.minVol > 0 ? s.minVol : 0.01; }
+
+  function snapVolume(s, v) {
+    var step = stepOf(s);
+    v = Number(v);
+    if (!isFinite(v) || v <= 0) return null;
+    v = Math.round(v / step) * step;
+    if (v < step) v = step;
+    var max = s.maxVol || Infinity;
+    if (v > max) v = Math.floor(max / step) * step;
+    /* Snapping leaves a float tail: 0.30000000000000004 lots is not a size. */
+    return Number(v.toFixed(6));
+  }
+
+  /** As many decimals as the step has, so 0.005 does not print as 0.01. */
+  function volDigits(s) {
+    var t = String(stepOf(s)), i = t.indexOf(".");
+    return i < 0 ? 0 : t.length - i - 1;
+  }
+
   function marginFor(s, volume, price) {
     var lev = s.leverage || LEVERAGE;
     return (s.usdBase ? volume * s.size : volume * s.size * price) / lev;
@@ -215,8 +250,13 @@
   function open(symbolName, type, volume, sl, tp) {
     var s = book[symbolName];
     if (!s) return "Invalid request";
-    volume = Math.round(Number(volume) * 100) / 100;
-    if (!(volume >= 0.01)) return "Invalid volume";
+    var asked = Number(volume);
+    volume = snapVolume(s, asked);
+    if (volume === null) return "Invalid volume";
+    /* Deriv refuses a size outside the instrument's range rather than quietly
+       trimming it, and so does this. */
+    if (asked < s.minVol - 1e-9) return "Invalid volume";
+    if (asked > (s.maxVol || Infinity) + 1e-9) return "Invalid volume";
 
     var price = type === "buy" ? ask(s) : bid(s);
     var need = marginFor(s, volume, price);
@@ -518,6 +558,7 @@
     open: open, close: close, modify: modify,
     deposit: deposit, setBalance: setBalance,
     leverage: LEVERAGE,
+    snapVolume: snapVolume, stepOf: stepOf, volDigits: volDigits,
     specOf: function (n) { return book[n] || null; },
     reset: function () {
       try { localStorage.removeItem(KEY); } catch (e) {}

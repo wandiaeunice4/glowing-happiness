@@ -207,7 +207,7 @@
       return '<div class="tm-row" data-ticket="' + p.ticket + '">' +
         '<div class="tm-row-h"><b>' + esc(p.symbol) + ",</b>" +
           '<span class="' + (p.type === "buy" ? "up" : "down") + '">' +
-          p.type + " " + p.volume.toFixed(2) + "</span></div>" +
+          p.type + " " + (sym ? volText(sym, p.volume) : p.volume) + "</span></div>" +
         '<div class="tm-row-sub num">' + px(p.open, digits) + " &rarr; " +
           (now === null ? "&mdash;" : px(now, digits)) + "</div>" +
         '<div class="tm-row-v num ' + cls(profit) + '">' + money(profit) + "</div>" +
@@ -444,13 +444,10 @@
     if (!list.length) { $("tm-hist").innerHTML = ""; return; }
 
     $("tm-hist").innerHTML = list.map(function (d) {
-      if (d.type === "balance") {
-        return '<div class="tm-hrow">' +
-          '<div class="h"><b>Balance</b></div>' +
-          '<div class="t num">' + stamp(d.closeTime) + "</div>" +
-          '<div class="v num up">' + money(d.profit) + "</div>" +
-        "</div>";
-      }
+      /* The deposit is not listed as a row. It is already the Deposit figure in
+         the block above, and the Balance beside it is footed on it, so a
+         "Balance" line at the bottom of the list said the same number twice. */
+      if (d.type === "balance") return "";
       var sym = T.symbol(d.symbol) || { digits: 2 };
       /* Line one is the instrument and the order, with the stamp opposite it;
          line two is the two prices with the result opposite them. The direction
@@ -462,7 +459,8 @@
       return '<div class="tm-hrow' + edge + '">' +
         '<div class="h"><b>' + esc(d.symbol) + ',</b> ' +
           '<span class="' + (d.type === "buy" ? "up" : "down") + '">' +
-          d.type + " " + d.volume.toFixed(2) + "</span></div>" +
+          d.type + " " + (T.symbol(d.symbol) ? volText(T.symbol(d.symbol), d.volume) : d.volume) +
+          "</span></div>" +
         '<div class="t num">' + stamp(d.closeTime) + "</div>" +
         '<div class="s num">' + px(d.open, sym.digits) +
           " &rarr; " + px(d.close, sym.digits) + "</div>" +
@@ -474,6 +472,21 @@
   /* ── the ticket ────────────────────────────────────────────────────────── */
 
   function ticketSymbol() { return T.symbol($("tm-osym").value); }
+
+  /* Volume written with the instrument's own precision, so 0.005 does not
+     print as 0.01 and 4 does not print as 4.00. */
+  function volText(s, v) { return Number(v).toFixed(T.volDigits(s)); }
+
+  /* The ticket and the one-click panel both start at the instrument's minimum
+     and move by its step. They used to start at 0.10 and step by 0.01 whatever
+     the instrument was, which offered 0.10 lots of Volatility 50 — an
+     instrument that starts at 4 — and could not reach 0.005 at all. */
+  function fitTicketVolume() {
+    var s = ticketSymbol();
+    if (!s) return;
+    var cur = Number($("tm-ovol").value);
+    $("tm-ovol").value = volText(s, T.snapVolume(s, isFinite(cur) && cur > 0 ? cur : s.minVol));
+  }
 
   function drawTicket() {
     if ($("tm-order").hidden) return;
@@ -611,7 +624,7 @@
     draw();
   }
 
-  var oneClickVol = 0.5;
+  var oneClickVol = null;   // set from the instrument the chart is on
 
   function drawOneClick() {
     var el = $("tm-oneclick");
@@ -620,7 +633,9 @@
     if (!s) return;
     $("tm-oc-bid").innerHTML = priceHtml(T.bid(s), s.digits);
     $("tm-oc-ask").innerHTML = priceHtml(T.ask(s), s.digits);
-    $("tm-oc-vol").textContent = oneClickVol.toFixed(oneClickVol < 1 ? 1 : 2);
+    if (oneClickVol === null) oneClickVol = s.minVol;
+    oneClickVol = T.snapVolume(s, oneClickVol);
+    $("tm-oc-vol").textContent = volText(s, oneClickVol);
   }
 
   function draw() {
@@ -684,12 +699,16 @@
     });
 
     $("tm-vminus").addEventListener("click", function () {
-      $("tm-ovol").value = Math.max(0.01, Math.round((Number($("tm-ovol").value) - 0.01) * 100) / 100).toFixed(2);
+      var sMinus = ticketSymbol();
+      if (sMinus) $("tm-ovol").value = volText(sMinus,
+        T.snapVolume(sMinus, Number($("tm-ovol").value) - T.stepOf(sMinus)));
     });
     $("tm-vplus").addEventListener("click", function () {
-      $("tm-ovol").value = (Math.round((Number($("tm-ovol").value) + 0.01) * 100) / 100).toFixed(2);
+      var sPlus = ticketSymbol();
+      if (sPlus) $("tm-ovol").value = volText(sPlus,
+        T.snapVolume(sPlus, Number($("tm-ovol").value) + T.stepOf(sPlus)));
     });
-    $("tm-osym").addEventListener("change", drawTicket);
+    $("tm-osym").addEventListener("change", function () { fitTicketVolume(); drawTicket(); });
     $("tm-sell").addEventListener("click", function () { send("sell"); });
     $("tm-buy").addEventListener("click", function () { send("buy"); });
 
@@ -709,11 +728,13 @@
     });
 
     $("tm-oc-minus").addEventListener("click", function () {
-      oneClickVol = Math.max(0.01, Math.round((oneClickVol - 0.5) * 100) / 100);
+      var sm = T.symbol(chartSym);
+      if (sm) oneClickVol = T.snapVolume(sm, (oneClickVol === null ? sm.minVol : oneClickVol) - T.stepOf(sm));
       drawOneClick();
     });
     $("tm-oc-plus").addEventListener("click", function () {
-      oneClickVol = Math.round((oneClickVol + 0.5) * 100) / 100;
+      var sp = T.symbol(chartSym);
+      if (sp) oneClickVol = T.snapVolume(sp, (oneClickVol === null ? sp.minVol : oneClickVol) + T.stepOf(sp));
       drawOneClick();
     });
     /* Straight to market, which is the whole point of the panel — there is no
