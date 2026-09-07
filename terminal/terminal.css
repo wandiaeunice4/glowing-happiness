@@ -138,11 +138,17 @@
    flexible middle element, so they fill exactly the gap that is left however
    long the label and the figure are. */
 
+/* The vertical rhythm is the app's, measured off it rather than guessed. Taking
+   each element's height as a fraction of the screen's width makes the
+   comparison scale-free, and against the app a figure row is 6.5% of the width,
+   the Positions band 7.4% and a position row 13.0%. These were 10.1%, 9.3% and
+   17.3% — every list on the screen about forty per cent too airy, which is what
+   made it read as a copy at a glance even though the type was right. */
 .tm-lead {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 1px 16px;
 }
 .tm-lead dt { font-size: 17px; font-weight: 700; white-space: nowrap; }
 .tm-lead i {
@@ -243,7 +249,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 16px 8px;
+  padding: 4px 16px;
   background: var(--pill);
   color: var(--ink-2);
   font-size: 15px;
@@ -257,15 +263,19 @@
 .tm-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 3px 12px;
-  padding: 11px 16px;
+  gap: 1px 12px;
+  padding: 4px 16px 5px;
   border-bottom: 1px solid var(--line);
   cursor: pointer;
 }
 .tm-row:active { background: var(--pill); }
 .tm-row-h { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .tm-row-h b { font-size: 17px; font-weight: 700; }
-.tm-row-h span { font-size: 14px; }
+/* "Volatility 25 (1s) Index, sell 1.00" is one line at one size — the symbol
+   is bold and the order beside it is not, but they are the same height. Both
+   this and the history row had the order set smaller, which read as a caption
+   hung off the symbol rather than part of the same sentence. */
+.tm-row-h span { font-size: 17px; }
 .tm-row-sub { font-size: 13.5px; color: var(--ink-2); }
 .tm-row-v { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: 17px; font-weight: 700; text-align: right; }
 
@@ -295,8 +305,10 @@
 .tm-hrow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 3px 12px;
-  padding: 11px 16px;
+  /* A tighter column gap than the trade list, because the stamp shares this
+     row and every pixel it gives back is one the instrument name keeps. */
+  gap: 1px 8px;
+  padding: 4px 16px 5px;
   border-bottom: 1px solid var(--line);
 }
 /* How the position ended, in the left edge: orange took a stop loss, green
@@ -307,8 +319,18 @@
 /* Two rows, two columns: the order and its stamp, then the prices and the
    result. Every cell is placed, because leaving them to flow put the stamp and
    the figure in the wrong halves of the row. */
-.tm-hrow .h { grid-column: 1; grid-row: 1; font-size: 17px; }
-.tm-hrow .h span { font-size: 15px; }
+/* One line, with the stamp beside it. The timestamp column narrows this one,
+   so a long instrument name wrapped and took the row from 13% of the width to
+   20% — half again as tall as the app's, and only on History. */
+.tm-hrow .h {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tm-hrow .h span { font-size: 17px; }
 .tm-hrow .t { grid-column: 2; grid-row: 1; font-size: 13px; color: var(--ink-2); text-align: right; }
 .tm-hrow .s { grid-column: 1; grid-row: 2; font-size: 13.5px; color: var(--ink-2); }
 .tm-hrow .v { grid-column: 2; grid-row: 2; font-size: 16px; font-weight: 700; text-align: right; }
