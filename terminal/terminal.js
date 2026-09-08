@@ -563,8 +563,14 @@
     $("tm-sim-lev").value = c.leverage;
     $("tm-sim-comm").value = c.commission;
     $("tm-sim-days").value = c.days;
+    $("tm-sim-plmin").value = c.plMin || 0;
+    $("tm-sim-plmax").value = c.plMax || 0;
+    $("tm-sim-scalpmax").value = c.scalpMax;
     document.querySelectorAll("[data-risk]").forEach(function (b) {
       b.classList.toggle("on", b.getAttribute("data-risk") === c.riskMode);
+    });
+    document.querySelectorAll("[data-scalp]").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-scalp") === (c.scalp === "on" ? "on" : "off"));
     });
     simNote();
   }
@@ -599,6 +605,16 @@
     $("tm-sim-sub").textContent = sym.name;
   }
 
+  /* The auto-trader is started and stopped in exactly one place, so the switch
+     in settings and the state on reload can never disagree. Its redraw is the
+     screen's own, which is why closing a position appears the instant it
+     happens rather than on the next tick of the feed. */
+  function applyScalper(c) {
+    if (!global.EvieSim || !global.EvieSim.autoStart) return;
+    if (c && c.scalp === "on") global.EvieSim.autoStart(c, function () { draw(); drawBar(); });
+    else global.EvieSim.autoStop();
+  }
+
   function readSim() {
     var c = simCfg() || {};
     c.market = $("tm-sim-market").value;
@@ -610,8 +626,13 @@
     c.leverage = Math.max(1, Math.round(Number($("tm-sim-lev").value) || 400));
     c.riskPct = Number($("tm-sim-risk").value) || 1;
     c.days = Math.max(1, Math.round(Number($("tm-sim-days").value) || 1));
+    c.plMin = Math.max(0, Number($("tm-sim-plmin").value) || 0);
+    c.plMax = Math.max(0, Number($("tm-sim-plmax").value) || 0);
+    c.scalpMax = Math.max(1, Math.round(Number($("tm-sim-scalpmax").value) || 4));
     var on = document.querySelector("[data-risk].on");
     c.riskMode = on ? on.getAttribute("data-risk") : "each";
+    var sc = document.querySelector("[data-scalp].on");
+    c.scalp = sc && sc.getAttribute("data-scalp") === "on" ? "on" : "off";
     return c;
   }
 
@@ -775,14 +796,30 @@
         b.classList.add("on");
       });
     });
+    document.querySelectorAll("[data-scalp]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.querySelectorAll("[data-scalp]").forEach(function (x) { x.classList.remove("on"); });
+        b.classList.add("on");
+      });
+    });
     $("tm-sim-run").addEventListener("click", function () {
       var c = readSim();
       var r = global.EvieSim.run(c);
       if (r.error) { toast(r.error); return; }
       $("tm-sim-balance").value = r.balance;
+      applyScalper(c);
       closeSheet("tm-sim");
       go(r.open ? "trade" : "history");
-      toast(r.count + " closed · " + r.open + " open · " + money(r.balance));
+      /* Say when the account could not carry what was asked for, and when the
+         P/L wanted implies an entry far from where the market is. Both are
+         facts about the request, and quietly swallowing either would leave a
+         screen that looks right and is not. */
+      var extra = "";
+      if (r.asked && r.open < r.asked) extra += " · only " + r.open + " of " + r.asked + " fit the margin";
+      if (r.met === false) extra += " · P/L range not reachable on this balance";
+      if (r.strain > 0.15) extra += " · entries " + Math.round(r.strain * 100) + "% from the market";
+      toast(r.count + " closed · " + r.open + " open · " + money(r.balance) +
+            (c.scalp === "on" ? " · scalper on" : "") + extra);
     });
     $("tm-sim-clear").addEventListener("click", function () {
       var c = readSim();
@@ -876,6 +913,9 @@
       var acct = global.EvieSim.settings();
       if (T.setLeverage) T.setLeverage(acct.leverage || 400);
       if (T.setCommission) T.setCommission(acct.commission || 0);
+      /* Left switched on, it is still on after a reload — a setting that
+         quietly forgets itself is worse than one that was never offered. */
+      applyScalper(acct);
     }
 
     if (global.EvieFeed) {

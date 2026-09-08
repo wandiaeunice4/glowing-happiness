@@ -693,3 +693,23 @@
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .tm-toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+
+/* ── the simulation notice ──────────────────────────────────────────────────
+   Sits above the top bar on every screen, in the flow rather than over it, so
+   it cannot be scrolled away and cannot sit underneath anything. Amber on
+   near-black: legible in both themes, and unmistakably not part of the app it
+   is imitating. */
+.tm-sim-flag {
+  flex: none;
+  padding: 6px 10px;
+  background: #7a4b00;
+  color: #ffdca8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  border-bottom: 1px solid #a86500;
+  user-select: none;
+}
