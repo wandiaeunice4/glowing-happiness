@@ -440,27 +440,47 @@
   }
 
   /**
-   * One position, sized so a normal few seconds of movement is worth noticing
-   * without being worth pretending about.
+   * One scalp, sized from the risk settings rather than from a guess.
+   *
+   * This used to take a flat one per cent of the balance and turn it into lots
+   * through a spread heuristic, which meant the Risk % and "risk applies to"
+   * settings did nothing at all while the scalper was running — the account
+   * said one thing and the trades did another. Both are honoured now, and the
+   * size is worked out the way a terminal works it out: the money at risk,
+   * divided by the distance to the stop, in the instrument's own contract
+   * size. That is also what makes the lots large enough for a scalp to be
+   * worth closing.
    */
   function autoOpen() {
     var Tm = T();
     var s = autoPick();
     if (!Tm || !s) return;
 
+    var cfg = auto.cfg || {};
     var acct = Tm.summary();
-    var risk = Math.max(1, (acct ? acct.balance : 100) * 0.01);
-    var pt   = Math.pow(10, -s.digits);
-    var vol  = Tm.snapVolume(s, risk / Math.max(pt * s.spread * 40 * s.size, 1e-9));
+    var balance = acct ? acct.balance : 0;
+    var pct = Number(cfg.riskPct) > 0 ? Number(cfg.riskPct) : 1;
+    var cap = autoCap();
+
+    /* "Each position" risks the percentage on its own; "all positions" means
+       the percentage is the whole book's, so it is divided by however many the
+       book is allowed to hold. */
+    var risk = balance * pct / 100;
+    if (cfg.riskMode === "all") risk = risk / Math.max(1, cap);
+    if (!(risk > 0)) return;
+
+    /* A scalper's stop: a handful of spreads, not an overnight swing. */
+    var pt = Math.pow(10, -s.digits);
+    var stopDist = Math.max(1, s.spread) * pt * (8 + Math.random() * 12);
+    var vol = volumeFor(s, risk, stopDist);
     var side = Math.random() < 0.5 ? "buy" : "sell";
 
     /* open() already refuses anything the free margin will not carry — it
        returns "No money" rather than a position — so the size is halved and
        offered again rather than being worked out against a margin function the
-       engine does not expose. A scalper that cannot afford its next trade is
-       not scalping, and this way the account's own rule decides that. */
+       engine does not expose. The account's own rule decides what it can hold. */
     var p = null, guard = 0;
-    while ((guard++) < 12) {
+    while ((guard++) < 14) {
       p = Tm.open(s.name, side, vol);
       if (typeof p === "object" && p) break;
       var half = Tm.snapVolume(s, vol / 2);
@@ -470,48 +490,24 @@
     }
     if (!p) return;
 
-    /* The target is measured in what THIS instrument moves, not in what the
-       account is prepared to risk.
-    
-       Sized off account risk it was ten to thirty dollars, which 0.01 lots of
-       anything will not make in twenty seconds — so nothing ever reached its
-       target, every position died on the clock instead, and a position closed
-       on a clock starts behind the spread. Forty-five seconds of it produced
-       two closes and both were losses. A few spreads of movement is what a
-       scalper is actually after, and it is reachable, so wins and losses now
-       both arrive on their own. */
-    var pt = Math.pow(10, -s.digits);
+    /* The exits, in money, from the size actually filled — so the stop really
+       is the risk the settings asked for rather than an approximation of it. */
     var perPoint = p.volume * s.size;
     if (s.usdBase) perPoint = perPoint / Math.max(p.open, 1e-9);
-    var spreadMoney = Math.max(1, s.spread) * pt * perPoint;
+    var stopMoney = stopDist * perPoint;
 
-    /* A target AND a stop, with the clock only as a backstop.
-    
-       On a bare timer the spread decided almost everything: a position opens a
-       spread down, and one closed because its time ran out is usually still
-       down. Seven closes, five of them red, and none of that was the market's
-       doing. Given both exits the outcome is the tape's — whichever side the
-       price reaches first — which is what a scalper's record actually looks
-       like, spread cost included rather than spread cost disguised. */
-    var goal = Math.max(0.02, spreadMoney * (2 + Math.random() * 6));
-
-    /* The stop is set two spreads FURTHER out than the target, and that is
-       arithmetic rather than generosity.
-    
-       A position is a spread down the moment it opens. So reaching +T needs the
-       price to travel T plus the spread, while reaching -T needs it to travel
-       only T minus the spread: the stop sits nearer in price and gets hit far
-       more often. With them nominally equal the tape returned one win in eight,
-       and none of that was the market having a view. Adding two spreads to the
-       stop makes the two exits the same distance in PRICE, so which one lands
-       is the tape's business — and the spread still shows up, as the small
-       drag it really is. */
     auto.live.push({
       ticket: p.ticket,
-      target: goal,
-      stop: -(goal + 2 * spreadMoney) * (0.9 + Math.random() * 0.3),
+      stop: -stopMoney,
+      target: stopMoney * (0.8 + Math.random() * 1.0),
       dieAt: Date.now() + Math.round(8000 + Math.random() * 37000)
     });
+  }
+
+  /** However many positions the book is allowed to hold at once. */
+  function autoCap() {
+    return Math.max(1, Math.min(20, Math.round(
+      (auto.cfg && auto.cfg.scalpMax) || DEFAULTS.scalpMax)));
   }
 
   function autoTick() {
@@ -536,14 +532,16 @@
       return true;
     });
 
-    var cap = Math.max(1, Math.min(20, Math.round(
-      (auto.cfg && auto.cfg.scalpMax) || DEFAULTS.scalpMax)));
+    /* The cap counts the WHOLE book, not just the scalper's share of it: the
+       setting says how many positions may be open, and a position opened by
+       hand is still an open position. */
+    var cap = autoCap();
 
     /* Not every tick, and not always one at a time: the gaps and the little
        bursts are what stop it looking metronomic. */
-    if (auto.live.length < cap && Math.random() < 0.35) {
+    if (Tm.positions().length < cap && Math.random() < 0.2) {
       var burst = Math.random() < 0.25 ? 2 : 1;
-      for (var i = 0; i < burst && auto.live.length < cap; i++) {
+      for (var i = 0; i < burst && Tm.positions().length < cap; i++) {
         autoOpen();
         changed = true;
       }
@@ -552,12 +550,42 @@
     if (changed && auto.onChange) auto.onChange();
   }
 
+  /**
+   * Take over whatever is already open.
+   *
+   * The cap counts the whole book, so positions left by a run — or restored
+   * from the last visit — fill it. Without adopting them the scalper sat at its
+   * limit with nothing it was willing to close: four positions open and not one
+   * trade in forty seconds. They are given the same exits as anything it opens
+   * itself, which is also what "scalp on" ought to mean — it is running the
+   * account now, not sharing it.
+   */
+  function autoAdopt() {
+    var Tm = T();
+    if (!Tm) return;
+    Tm.positions().forEach(function (p) {
+      var s = Tm.symbol(p.symbol);
+      if (!s) return;
+      var perPoint = p.volume * s.size;
+      if (s.usdBase) perPoint = perPoint / Math.max(p.open, 1e-9);
+      var pt = Math.pow(10, -s.digits);
+      var stopMoney = Math.max(1, s.spread) * pt * (8 + Math.random() * 12) * perPoint;
+      auto.live.push({
+        ticket: p.ticket,
+        stop: -stopMoney,
+        target: stopMoney * (0.8 + Math.random() * 1.0),
+        dieAt: Date.now() + Math.round(4000 + Math.random() * 20000)
+      });
+    });
+  }
+
   function autoStart(cfg, onChange) {
     autoStop();
     auto.cfg = cfg || null;
     auto.onChange = typeof onChange === "function" ? onChange : null;
     auto.live = [];
-    auto.timer = setInterval(autoTick, 900);
+    autoAdopt();
+    auto.timer = setInterval(autoTick, 250);
   }
 
   function autoStop() {

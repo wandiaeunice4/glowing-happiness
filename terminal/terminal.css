@@ -713,3 +713,30 @@
   border-bottom: 1px solid #a86500;
   user-select: none;
 }
+
+
+/* ── a position arriving and leaving ────────────────────────────────────────
+   The real terminal does not blink a row into existence. A fill slides down
+   into the book and a close fades out of it, and both are quick enough to read
+   as the platform reacting rather than as an animation being played at you.
+   The transition lives on the row, which is only possible because the list is
+   patched in place — a row that is rebuilt every frame has nothing to
+   transition from. */
+.tm-row {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.tm-row--in {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.tm-row--out {
+  opacity: 0;
+  transform: translateX(10px);
+  pointer-events: none;
+}
+
+/* Somebody who would rather not be moved at is not moved at. */
+@media (prefers-reduced-motion: reduce) {
+  .tm-row { transition: none; }
+  .tm-row--in, .tm-row--out { opacity: 1; transform: none; }
+}
