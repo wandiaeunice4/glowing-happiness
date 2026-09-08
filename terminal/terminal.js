@@ -646,6 +646,7 @@
     $("tm-sim-plmin").value = c.plMin || 0;
     $("tm-sim-plmax").value = c.plMax || 0;
     $("tm-sim-scalpmax").value = c.scalpMax;
+    $("tm-sim-scalpwin").value = c.scalpWin;
     document.querySelectorAll("[data-risk]").forEach(function (b) {
       b.classList.toggle("on", b.getAttribute("data-risk") === c.riskMode);
     });
@@ -709,6 +710,7 @@
     c.plMin = Math.max(0, Number($("tm-sim-plmin").value) || 0);
     c.plMax = Math.max(0, Number($("tm-sim-plmax").value) || 0);
     c.scalpMax = Math.max(1, Math.round(Number($("tm-sim-scalpmax").value) || 4));
+    c.scalpWin = Math.max(0, Math.min(100, Number($("tm-sim-scalpwin").value) || 0));
     var on = document.querySelector("[data-risk].on");
     c.riskMode = on ? on.getAttribute("data-risk") : "each";
     var sc = document.querySelector("[data-scalp].on");
