@@ -426,9 +426,20 @@
       if (one && one.isOpen !== false) return one;
     }
 
+    /* Slow markets are dropped outright, not merely made less likely.
+    
+       Weighting alone left the forex majors coming up often enough to matter,
+       and on those a scalp reaches neither its target nor its stop inside a
+       minute — it just sits until the clock closes it a spread down. Twelve of
+       twenty trades ended that way, which is what made the record look like
+       losses: the wins were landing on target, the losses were mostly the
+       timer. Taking only the faster half of what is trading leaves the
+       instruments a scalp can actually finish on, and the weighting inside
+       that still favours the quickest. */
     var ranked = live.slice().sort(function (a, b) { return moves(b) - moves(a); });
-    var i = Math.floor(Math.pow(Math.random(), 2) * ranked.length);
-    return ranked[Math.min(i, ranked.length - 1)];
+    var quick = ranked.slice(0, Math.max(1, Math.ceil(ranked.length / 2)));
+    var i = Math.floor(Math.pow(Math.random(), 2) * quick.length);
+    return quick[Math.min(i, quick.length - 1)];
   }
 
   /** How much this instrument moves, as a share of its own price. */
@@ -437,6 +448,82 @@
     if (!(mid > 0)) return 0;
     if (s.high > 0 && s.low > 0 && s.high >= s.low) return (s.high - s.low) / mid;
     return (Math.max(1, s.spread) * Math.pow(10, -s.digits)) / mid;
+  }
+
+  /**
+   * How far a scalp's stop sits, in price, from what the instrument actually
+   * does — not from a multiple of its spread.
+   *
+   * Spreads are a poor stand-in for volatility: they differ between instruments
+   * for reasons that have nothing to do with how fast a price travels, so a
+   * stop set at "twelve spreads" is minutes away on one market and seconds away
+   * on another. The day's range is the honest measure of how much room a market
+   * gives you, and a one-minute scalp works in a small fraction of it. The
+   * spread bounds it at both ends so the stop is never inside the cost of
+   * trading, nor absurdly wide on a market whose range has barely opened.
+   */
+  function scalpStopDist(s) {
+    var pt = Math.pow(10, -s.digits);
+    var spreadPx = Math.max(1, s.spread) * pt;
+    var range = (s.high > 0 && s.low > 0 && s.high > s.low)
+      ? (s.high - s.low)
+      : spreadPx * 60;
+    /* A day's range is a daily figure; a trade meant to resolve in half a
+       minute covers roughly the square root of its share of the day, which is
+       one to two per cent of it. The floor was six spreads, which on a
+       volatility index is larger than that and so overrode the measurement
+       entirely — every instrument ended up with the same six-spread stop, and
+       on the slow ones neither level was ever reached, so the clock closed them
+       at a small loss.
+    
+       Dropping the floor to two spreads then broke it the other way, and the
+       arithmetic says why. A position opens one spread down, so reaching a
+       target t of the risk S needs the price to travel t*S + 1 spreads while
+       the stop needs only S - 1. With S at two that is most of the trade, and a
+       scheme that should win four times in five won under half. Twelve keeps
+       the spread to roughly a twelfth of the risk, where the intended geometry
+       actually holds. */
+    var want = range * (0.008 + Math.random() * 0.017);
+    return Math.min(Math.max(want, spreadPx * 12), spreadPx * 80);
+  }
+
+  /**
+   * The two exits, in money, for a position that has been filled.
+   *
+   * The reward is deliberately SMALLER than the risk, which is the shape of
+   * scalping rather than a thumb on the scale: take four tenths of your risk as
+   * a target and, on a price as likely to go one way as the other, you reach it
+   * before your stop about seven times in ten. Frequent small wins, the
+   * occasional larger loss, a book that is mostly green.
+   *
+   * What this cannot do is manufacture a rising balance. Every price here is
+   * the real one and every fill crosses a real spread, so the long-run
+   * expectancy of any fixed scheme is the spread, against you. A wider stop
+   * makes that cost a smaller share of each trade, which is why the stop is set
+   * well outside it — but the honest end of it is that the balance wanders
+   * rather than climbs, and over a long enough run it drifts down by the cost
+   * of trading. Making it climb would mean making the prices up.
+   *
+   * It was the other way round — a target of 0.8 to 1.8 times the risk — which
+   * on the same arithmetic wins about four times in ten, and every position
+   * that ran out its clock closed at roughly minus the spread on top. That is
+   * why nothing but losses came out of it. The prices were never the problem.
+   */
+  function scalpExits(s, p, stopDist) {
+    var perPoint = p.volume * s.size;
+    if (s.usdBase) perPoint = perPoint / Math.max(p.open, 1e-9);
+    var stopMoney = stopDist * perPoint;
+    return {
+      stop: -stopMoney,
+      target: stopMoney * (0.30 + Math.random() * 0.20),
+      /* Long enough that nearly every trade finishes at one of the two levels
+         rather than on the clock. A clock close lands wherever the price
+         happened to be, which is noise in both directions and averages out to
+         the spread against you — with the deadline at 25-110s it was firing on
+         two closes in nine and muddying the record. It is a backstop for a
+         position that has gone quiet, not an exit. */
+      dieAt: Date.now() + Math.round(45000 + Math.random() * 135000)
+    };
   }
 
   /**
@@ -469,9 +556,7 @@
     if (cfg.riskMode === "all") risk = risk / Math.max(1, cap);
     if (!(risk > 0)) return;
 
-    /* A scalper's stop: a handful of spreads, not an overnight swing. */
-    var pt = Math.pow(10, -s.digits);
-    var stopDist = Math.max(1, s.spread) * pt * (8 + Math.random() * 12);
+    var stopDist = scalpStopDist(s);
     var vol = volumeFor(s, risk, stopDist);
     var side = Math.random() < 0.5 ? "buy" : "sell";
 
@@ -490,18 +575,11 @@
     }
     if (!p) return;
 
-    /* The exits, in money, from the size actually filled — so the stop really
-       is the risk the settings asked for rather than an approximation of it. */
-    var perPoint = p.volume * s.size;
-    if (s.usdBase) perPoint = perPoint / Math.max(p.open, 1e-9);
-    var stopMoney = stopDist * perPoint;
-
-    auto.live.push({
-      ticket: p.ticket,
-      stop: -stopMoney,
-      target: stopMoney * (0.8 + Math.random() * 1.0),
-      dieAt: Date.now() + Math.round(8000 + Math.random() * 37000)
-    });
+    /* The exits come from the size actually filled, so the stop really is the
+       risk the settings asked for rather than an approximation of it. */
+    var ex = scalpExits(s, p, stopDist);
+    ex.ticket = p.ticket;
+    auto.live.push(ex);
   }
 
   /** However many positions the book is allowed to hold at once. */
@@ -566,16 +644,9 @@
     Tm.positions().forEach(function (p) {
       var s = Tm.symbol(p.symbol);
       if (!s) return;
-      var perPoint = p.volume * s.size;
-      if (s.usdBase) perPoint = perPoint / Math.max(p.open, 1e-9);
-      var pt = Math.pow(10, -s.digits);
-      var stopMoney = Math.max(1, s.spread) * pt * (8 + Math.random() * 12) * perPoint;
-      auto.live.push({
-        ticket: p.ticket,
-        stop: -stopMoney,
-        target: stopMoney * (0.8 + Math.random() * 1.0),
-        dieAt: Date.now() + Math.round(4000 + Math.random() * 20000)
-      });
+      var ex = scalpExits(s, p, scalpStopDist(s));
+      ex.ticket = p.ticket;
+      auto.live.push(ex);
     });
   }
 
