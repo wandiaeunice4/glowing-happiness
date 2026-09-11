@@ -34,6 +34,14 @@
 
 (function (global) {
   "use strict";
+  /* The language layer's t() when it is on the page, English otherwise; and a
+     {name} filler for the strings built with numbers in them. */
+  var T = function (s, vars) {
+    var out = (typeof window !== "undefined" && typeof window.t === "function") ? window.t(s) : s;
+    if (vars) for (var k in vars) out = out.split("{" + k + "}").join(String(vars[k]));
+    return out;
+  };
+
 
   var host = null;
   var el = function (id) { return document.getElementById(id); };
@@ -206,10 +214,10 @@
     /* `hit` names the target so the run's end can raise the card for it. Only
        these two carry one: they are the only endings the user asked for. */
     if (l.sl != null && !isNaN(l.sl) && profit <= -Math.abs(l.sl)) {
-      return { msg: "Stop loss hit at " + bare(profit) + ".", kind: "warning", hit: "sl" };
+      return { msg: T("Stop loss hit at {x}", { x: bare(profit) }) + ".", kind: "warning", hit: "sl" };
     }
     if (l.tp != null && !isNaN(l.tp) && profit >= Math.abs(l.tp)) {
-      return { msg: "Take profit hit at +" + bare(profit) + ".", kind: "success", hit: "tp" };
+      return { msg: T("Take profit hit at +{x}", { x: bare(profit) }) + ".", kind: "success", hit: "tp" };
     }
 
     var noLimits = (l.tp == null || isNaN(l.tp)) && (l.sl == null || isNaN(l.sl));
@@ -217,7 +225,7 @@
        Stopping merely because the last trade won called a ladder recovered
        while it was still behind. */
     if (noLimits && t.trades > 0 && profit > 0) {
-      return { msg: "Recovered. Stopped in front at +" + bare(profit) + ".", kind: "success" };
+      return { msg: T("Recovered. Stopped in front at +{x}", { x: bare(profit) }) + ".", kind: "success" };
     }
     return null;
   }
@@ -286,9 +294,8 @@
         var side = pickSide(pair, sym, lastLost, recoverWith);
         if (!side) { say("Waiting for enough ticks…", "warning"); await sleep(1200); continue; }
 
-        say((side.recovering ? "Recovering on " : "Trading ") +
-            host.types[side.type].label + " at " +
-            side.pct.toFixed(1) + "% · " + bare(stake), "info");
+        say(T(side.recovering ? "Recovering on {type} at {pct}% · {stake}" : "Trading {type} at {pct}% · {stake}",
+              { type: T(host.types[side.type].label), pct: side.pct.toFixed(1), stake: bare(stake) }), "info");
 
         var r;
         try {
@@ -328,7 +335,7 @@
           fails++;
           if (fails >= MAX_FAILS) {
             ended = {
-              msg: "Stopped after " + fails + " refused trades. " +
+              msg: T("Stopped after {n} refused trades.", { n: fails }) + " " +
                    ((e && e.message) || "The stake may be larger than the balance."),
               kind: "error"
             };
