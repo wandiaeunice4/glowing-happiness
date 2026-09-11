@@ -308,7 +308,7 @@
         /* The action group at the right of the nav, when the page has one, so
            the switch sits beside the buttons already there — first among them.
            Else the header itself; else floating. */
-        var group = document.querySelector(".nav-cta, .perch, .nav-actions, .nav-end, .header-end, .tm-bar-end, .top-end");
+        var group = document.querySelector(".nav-cta, .perch, .top-cta, .nav-actions, .nav-end, .header-end, .tm-bar-end, .top-end");
         var hdr = document.querySelector("header");
         if (group) { mount.className = "lang-mount lang-mount--group"; group.insertBefore(mount, group.firstChild); }
         else if (hdr) { mount.className = "lang-mount lang-mount--header"; hdr.appendChild(mount); }
