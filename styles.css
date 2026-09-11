@@ -38,6 +38,9 @@
   --blue:      #0d8ecf;
   --blue-hi:   #0a76ae;
   --ok:        #14a05a;
+  /* The Real group in the portfolio — the money that is actually money. */
+  --real:      #14a05a;
+  --real-tint: rgba(20, 160, 90, 0.10);
   --danger:    #d92d20;
   --amber:     #b45309;
   --violet:    #6d3bd8;
@@ -77,6 +80,8 @@
   --blue:      #38c6ff;
   --blue-hi:   #5bd2ff;
   --ok:        #5fd39a;
+  --real:      #5fd39a;
+  --real-tint: rgba(95, 211, 154, 0.14);
   --danger:    #ff6a6a;
   --amber:     #f5a524;
   --violet:    #b794ff;
@@ -310,6 +315,21 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
   color: var(--ink-faint);
   margin-bottom: 6px;
 }
+
+/* The Real group carries the account's own colour: a coloured pill on the
+   title and the balance in the same ink, so the row that is actual money is
+   the one the eye lands on. Demo stays quiet. Same in practice mode — the
+   figure changes, the emphasis does not. */
+.grp--real .grp-t {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--real-tint); color: var(--real);
+}
+.grp--real .grp-t::before {
+  content: ""; width: 6px; height: 6px; border-radius: 999px;
+  background: var(--real); box-shadow: 0 0 0 3px var(--real-tint);
+}
+.grp--real .acct-bal { color: var(--real); font-weight: 750; }
 
 /* Every account: kind, id, balance — the figures line up down the right. */
 .accts { border-top: 1px solid var(--line); }
