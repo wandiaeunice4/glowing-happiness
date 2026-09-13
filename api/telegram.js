@@ -14,7 +14,7 @@
  */
 
 const {
-  readBody, json, supportVisitorFor, recordSupportReply, listPeople,
+  readBody, json, supportVisitorFor, supportVisitorById, recordSupportReply, listPeople,
   isBanned, banPerson, unbanPerson, listBans, clearBans,
 } = require("./_lib/db");
 const { saveTelegramFile } = require("./_lib/files");
@@ -54,6 +54,21 @@ module.exports = async (req, res) => {
 
   const repliedTo = msg.reply_to_message && msg.reply_to_message.message_id;
 
+  /* Who a swipe-reply is for. The visitor's own message (words or picture)
+     is the normal target. But a thread on a phone quickly fills with the
+     bot's own lines — "Delivered to 3A8ACC6A", the original header with its
+     "Person:" id — and swiping on one of those is a reasonable thing to do
+     mid-conversation. Every bot message about a person carries their id, so
+     it is read back out. */
+  async function personBehind(replied) {
+    if (!replied) return null;
+    const direct = await supportVisitorFor(replied.message_id);
+    if (direct) return direct;
+    if (!(replied.from && replied.from.is_bot)) return null;
+    const m = /\b([0-9A-F]{8})\b/.exec(String(replied.text || replied.caption || ""));
+    return m ? supportVisitorById(m[1]) : null;
+  }
+
   /* Telegram gives several sizes of a photo, smallest first; the last is the
      full one. A document keeps its own name and mime type. */
   const photoId = msg.photo && msg.photo.length ? msg.photo[msg.photo.length - 1].file_id : null;
@@ -62,7 +77,7 @@ module.exports = async (req, res) => {
 
   // ── a reply to a support message: deliver it, with whatever came attached ──
   if (repliedTo && (text || hasFile) && text[0] !== "/") {
-    const who = await supportVisitorFor(repliedTo);
+    const who = await personBehind(msg.reply_to_message);
 
     if (!who) {
       await say(chatId, "That is not a support message, so there is nobody to send it to. Swipe-reply to the message from the person you want to answer.", msg.message_id);
@@ -106,7 +121,7 @@ module.exports = async (req, res) => {
     let visitorId = null, email = null, reason = rest;
 
     if (repliedTo) {
-      const who = await supportVisitorFor(repliedTo);
+      const who = await personBehind(msg.reply_to_message);
       if (!who) {
         await say(chatId, `That is not a support message, so there is nobody to act on. Swipe-reply to a message from the person you mean, or send <code>/${banning ? "ban" : "unban"} their@email</code>.`, msg.message_id);
         return json(res, 200, { ok: true });

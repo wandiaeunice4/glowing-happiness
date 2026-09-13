@@ -92,6 +92,7 @@ async function recordSupportInbound(m) {
     direction: "in",
     body: String(m.body || "").slice(0, 4000),
     tg_message_id: m.tgMessageId || null,
+    tg_file_message_id: m.tgFileMessageId || null,
     email: m.email || null,
     name: m.name || null,
     source: m.source || null,
@@ -102,11 +103,25 @@ async function recordSupportInbound(m) {
 
 /** Which visitor does this Telegram message belong to? Null when the owner
  *  replied to something that was never a support message — a normal thing to
- *  do, not an error. */
+ *  do, not an error. The screenshot a visitor attached arrives as its own
+ *  Telegram message under their words, and swiping on the picture is at least
+ *  as natural as swiping on the text, so both ids lead here. */
 async function supportVisitorFor(tgMessageId) {
   if (!configured()) return null;
-  const r = await select(SUPPORT, `select=visitor_id,email&tg_message_id=eq.${encodeURIComponent(tgMessageId)}&limit=1`);
+  const id = encodeURIComponent(tgMessageId);
+  const r = await select(SUPPORT, `select=visitor_id,email&or=(tg_message_id.eq.${id},tg_file_message_id.eq.${id})&limit=1`);
   if (!r.ok) { console.error("[evie] support reply lookup failed:", r.error); return null; }
+  const row = r.data && r.data[0];
+  return row ? { visitorId: row.visitor_id, email: row.email || null } : null;
+}
+
+/** The person behind a visitor id, if anyone has ever written in under it.
+ *  Used when the owner swipes on one of the BOT's own messages — a delivery
+ *  receipt names the id, and that is enough to keep the conversation going. */
+async function supportVisitorById(visitorId) {
+  if (!configured() || !/^[0-9A-F]{8}$/.test(visitorId || "")) return null;
+  const r = await select(SUPPORT, `select=visitor_id,email&visitor_id=eq.${visitorId}&direction=eq.in&order=created_at.desc&limit=1`);
+  if (!r.ok) { console.error("[evie] visitor lookup failed:", r.error); return null; }
   const row = r.data && r.data[0];
   return row ? { visitorId: row.visitor_id, email: row.email || null } : null;
 }
@@ -272,6 +287,6 @@ async function clearBans(which) {
 
 module.exports = {
   configured, rest, select, insert, update, readBody, json,
-  recordSupportInbound, supportVisitorFor, recordSupportReply, collectSupportReplies, recentSupportReplies, supportHistory, listPeople,
+  recordSupportInbound, supportVisitorFor, supportVisitorById, recordSupportReply, collectSupportReplies, recentSupportReplies, supportHistory, listPeople,
   isBanned, findBan, banPerson, unbanPerson, listBans, clearBans,
 };

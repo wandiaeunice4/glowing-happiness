@@ -188,6 +188,7 @@ module.exports = async (req, res) => {
   /* The file goes as its own message under the words. Its own failure is
      logged but not fatal — the words already arrived. sendPhoto for an image,
      sendDocument for anything else: Telegram rejects a PDF sent as a photo. */
+  let fileMessageId = null;
   if (file) {
     const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
     const form = new FormData();
@@ -196,7 +197,11 @@ module.exports = async (req, res) => {
     form.append(isImage ? "photo" : "document", new Blob([file.data], { type: file.type }), file.name);
     if (messageId) form.append("reply_to_message_id", String(messageId));
     await fetch(`${API}/bot${token}/${isImage ? "sendPhoto" : "sendDocument"}`, { method: "POST", body: form })
-      .then(async (r) => { if (!r.ok) console.error("[evie] telegram refused the file:", r.status, await r.text().catch(() => "")); })
+      .then(async (r) => {
+        if (!r.ok) { console.error("[evie] telegram refused the file:", r.status, await r.text().catch(() => "")); return; }
+        const j = await r.json().catch(() => null);
+        fileMessageId = j && j.result && typeof j.result.message_id === "number" ? j.result.message_id : null;
+      })
       .catch((e) => console.error("[evie] telegram file send failed:", e));
   }
 
@@ -204,6 +209,7 @@ module.exports = async (req, res) => {
     visitorId: str(body.visitorId, 16),
     body: message || `(${file.name})`,
     tgMessageId: messageId,
+    tgFileMessageId: fileMessageId,
     email,
     name,
     source: str(body.source, 60),
