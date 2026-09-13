@@ -45,6 +45,8 @@ const SHELL = [
   "/markets.js",
   "/unlock.js",
   "/install.js",
+  "/support.js",
+  "/support.css",
   "/manifest.webmanifest",
   "/favicon.svg",
   "/icons/icon-192.png",
