@@ -12,6 +12,11 @@
   },
   "redirects": [
     {
+      "source": "/mt5/EvieTraderMT5.mq5",
+      "destination": "/mt5.html#get",
+      "permanent": false
+    },
+    {
       "source": "/:path*",
       "has": [
         {
