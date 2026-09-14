@@ -20,7 +20,7 @@ const {
 const { saveTelegramFile } = require("./_lib/files");
 const {
   requestForTelegramMessage, requestForVisitor, pendingRequests, approveRequest, declineRequest,
-  markAnswered, markAnsweredByEmail, declineCount, PARTNER_ID, DERIV_PROFILE, DERIV_SIGNUP, EXAMPLE_CLIENT_ID,
+  markAnswered, markAnsweredByEmail, declineCount, codeMessage, PARTNER_ID, DERIV_PROFILE, DERIV_SIGNUP, EXAMPLE_CLIENT_ID,
 } = require("./_lib/ea");
 
 const API = "https://api.telegram.org";
@@ -147,11 +147,8 @@ module.exports = async (req, res) => {
         await say(chatId, "⚠️ Could not issue a code just now. Nothing was sent — try again in a moment.", msg.message_id);
         return json(res, 200, { ok: true });
       }
-      const delivered = await recordSupportReply(reqst.visitorId, [
-        `Your ID ${reqst.mt5Login} is confirmed under our community — here is your download code:`,
-        "", code, "",
-        "Paste it into the download step on the MT5 page to unlock the file. It works only on this browser.",
-      ].join("\n"));
+      const delivered = await recordSupportReply(reqst.visitorId, codeMessage(code, reqst.mt5Login,
+        `Your ID ${reqst.mt5Login} is confirmed under our community — here is your download code:`));
       await say(chatId, delivered
         ? `✅ Approved. Code <code>${code}</code> sent to ${reqst.name} (${reqst.email}), ID <code>${reqst.mt5Login}</code>.${alsoSettled > 1 ? ` Their ${alsoSettled - 1} other open request${alsoSettled === 2 ? "" : "s"} left the waiting list with it.` : ""}`
         : `⚠️ Code <code>${code}</code> was issued but could not be delivered. Send it to ${reqst.email} yourself.`,

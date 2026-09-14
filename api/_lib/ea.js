@@ -30,6 +30,20 @@ const DERIV_PROFILE = "https://home.deriv.com/dashboard/profile";
 const EXAMPLE_CLIENT_ID = "01a05725-5dec-7bfe-b602-76c3588bb0a6";
 /** The file itself, bundled beside the function rather than served from /. */
 const EA_FILE = "EvieTraderMT5.mq5";
+/** A code is good for this many downloads, then it has to be issued again. */
+const MAX_CODE_USES = 3;
+
+/** The words that go with a code, wherever it is issued. The bubble draws
+ *  the code line green and the ⚠ line red — those two conventions are what
+ *  make them stand out, so keep each on a line of its own. */
+function codeMessage(code, mt5Login, lead) {
+  return [
+    lead,
+    "", code, "",
+    `Paste it into the download step on the MT5 page to unlock the file. It works only on this browser, ${MAX_CODE_USES} times.`,
+    `⚠ Works only on Deriv, on the approved account ${mt5Login}. Any other broker or account receives wrong data.`,
+  ].join("\n");
+}
 
 /* No I, O, 1 or 0 — the alphabet for anything a human copies by eye. */
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -121,12 +135,30 @@ async function pendingRequests(limit) {
   return rows.filter((d) => !settled.has(d.visitor_id)).slice(0, limit || 20).map(row);
 }
 
-/** The live code this browser already holds, if any. */
+/** The live code this browser already holds, if any, and what is left of it. */
 async function approvedCodeFor(visitorId) {
   if (!configured() || !visitorId) return null;
-  const res = await select(TABLE, `select=code&visitor_id=eq.${encodeURIComponent(visitorId)}&status=eq.approved&code=not.is.null&order=decided_at.desc&limit=1`);
+  const res = await select(TABLE, `select=code,code_uses,mt5_login,email&visitor_id=eq.${encodeURIComponent(visitorId)}&status=eq.approved&code=not.is.null&order=decided_at.desc&limit=1`);
   if (!res.ok) { console.error("[ea] approved lookup failed:", res.error); return null; }
-  return (res.data && res.data[0] && res.data[0].code) || null;
+  const d = res.data && res.data[0];
+  if (!d || !d.code) return null;
+  return { code: d.code, usesLeft: Math.max(0, MAX_CODE_USES - (d.code_uses || 0)), mt5Login: d.mt5_login, email: d.email };
+}
+
+/**
+ * Was this exact email and ID approved before, on any browser?
+ *
+ * The automatic re-approval: somebody whose code is spent, or who is on a new
+ * device, sends the form again with the same email and the same ID they were
+ * approved with, and gets a fresh code without waiting. The ID is compared
+ * exactly; the email without regard to case.
+ */
+async function approvedMatch(email, mt5Login) {
+  if (!configured() || !email || !mt5Login) return null;
+  const res = await select(TABLE, `select=id,visitor_id,name&status=eq.approved&code=not.is.null&email=ilike.${encodeURIComponent(email)}&mt5_login=eq.${encodeURIComponent(mt5Login)}&order=decided_at.desc&limit=1`);
+  if (!res.ok) { console.error("[ea] match lookup failed:", res.error); return null; }
+  const d = res.data && res.data[0];
+  return d ? { id: d.id, visitorId: d.visitor_id, name: d.name } : null;
 }
 
 /**
@@ -198,18 +230,24 @@ async function checkCode(code, visitorId) {
   const wanted = normaliseCode(code);
   if (wanted.length < 8) return { ok: false, why: "unknown" };
 
-  const res = await select(TABLE, `select=id,visitor_id,name,code,code_used_at&status=eq.approved&code=not.is.null&limit=500`);
+  const res = await select(TABLE, `select=id,visitor_id,name,code,code_used_at,code_uses&status=eq.approved&code=not.is.null&limit=500`);
   if (!res.ok) { console.error("[ea] code check failed:", res.error); return { ok: false, why: "unavailable" }; }
 
   const hit = (res.data || []).find((r) => normaliseCode(r.code) === wanted);
   if (!hit) return { ok: false, why: "unknown" };
   if (hit.visitor_id !== visitorId) return { ok: false, why: "not-yours" };
 
-  if (!hit.code_used_at) {
-    const mark = await update(TABLE, `id=eq.${hit.id}`, { code_used_at: new Date().toISOString() });
-    if (!mark.ok) console.error("[ea] could not mark code used:", mark.error);
-  }
-  return { ok: true, name: hit.name || "" };
+  /* Three downloads, counted on the row. The increment is conditional on the
+     count it read, so two downloads landing together cannot both pass as the
+     third: the second one finds the row already moved on and is refused. */
+  const used = hit.code_uses || 0;
+  if (used >= MAX_CODE_USES) return { ok: false, why: "exhausted" };
+  const mark = await update(TABLE, `id=eq.${hit.id}&code_uses=eq.${used}`, {
+    code_uses: used + 1, code_used_at: hit.code_used_at || new Date().toISOString(),
+  });
+  if (!mark.ok) { console.error("[ea] could not count the download:", mark.error); return { ok: false, why: "unavailable" }; }
+  if (!(mark.data || []).length) return { ok: false, why: "exhausted" };
+  return { ok: true, name: hit.name || "", usesLeft: MAX_CODE_USES - used - 1 };
 }
 
 /** How many times this browser has asked recently — a spam brake, not a rule. */
@@ -221,8 +259,8 @@ async function recentRequestCount(visitorId, withinMinutes) {
 }
 
 module.exports = {
-  PARTNER_ID, DERIV_SIGNUP, DERIV_PROFILE, EXAMPLE_CLIENT_ID, EA_FILE,
+  PARTNER_ID, DERIV_SIGNUP, DERIV_PROFILE, EXAMPLE_CLIENT_ID, EA_FILE, MAX_CODE_USES, codeMessage,
   createRequest, attachTelegramMessage, requestForTelegramMessage, requestForVisitor,
-  pendingRequests, approvedCodeFor, markAnswered, markAnsweredByEmail, approveRequest, declineRequest,
+  pendingRequests, approvedCodeFor, approvedMatch, markAnswered, markAnsweredByEmail, approveRequest, declineRequest,
   declineCount, checkCode, recentRequestCount, normaliseCode,
 };

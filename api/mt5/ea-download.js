@@ -13,7 +13,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { readBody, json } = require("../_lib/db");
+const { readBody, json, isBanned } = require("../_lib/db");
 const { checkCode, EA_FILE } = require("../_lib/ea");
 
 module.exports = async (req, res) => {
@@ -26,11 +26,17 @@ module.exports = async (req, res) => {
 
   if (!code || !visitorId) return json(res, 400, { error: "Enter the code you were sent." });
 
+  /* A ban ends the code with it. Same words as an unknown code, on purpose. */
+  if (await isBanned(visitorId, null)) return json(res, 403, { error: "That code was not recognised. Check it and try again." });
+
   const check = await checkCode(code, visitorId);
   if (!check.ok) {
     if (check.why === "unavailable") return json(res, 503, { error: "We could not check that code just now. Try again in a moment." });
     if (check.why === "not-yours") {
       return json(res, 403, { error: "That code was issued to a different browser. Open the support window on the device you asked from, or ask us for a new one." });
+    }
+    if (check.why === "exhausted") {
+      return json(res, 403, { error: "That code has been used three times. Send the request again with the same email and ID and a new one is issued straight away." });
     }
     return json(res, 403, { error: "That code was not recognised. Check it and try again." });
   }

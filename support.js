@@ -72,6 +72,20 @@
     }).join("");
   }
 
+  /** Two lines in a reply are drawn differently from the rest: a download
+   *  code on a line of its own is green and large, so it is the one thing on
+   *  the screen; a line beginning with ⚠ is red and bold, because it is the
+   *  one thing they must not miss. Everything else is linkified text. */
+  var CODE_LINE = /^[A-Z]{3,4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+  function decorate(text) {
+    return String(text || "").split("\n").map(function (line) {
+      var t = line.trim();
+      if (CODE_LINE.test(t)) return '<b class="sup-code">' + esc(t) + "</b>";
+      if (t.charAt(0) === "⚠") return '<b class="sup-warn">' + linkify(t) + "</b>";
+      return linkify(line);
+    }).join("\n");
+  }
+
   /** Local time, short. The date is added only when it is not today. */
   function clockOf(iso) {
     var d = new Date(iso);
@@ -244,7 +258,7 @@
                 (l.at ? '<span class="sup-time">' + esc(clockOf(l.at)) + "</span>" : "") +
               "</div>" +
               '<div class="sup-reply-body' + (hasText ? "" : " bare") + '">' +
-                (hasText ? linkify(l.text) : "") + attachmentHtml(l.file, !hasText) +
+                (hasText ? decorate(l.text) : "") + attachmentHtml(l.file, !hasText) +
               "</div></div>";
           }
           return '<div><div class="sup-mine">' + esc(l.text) +

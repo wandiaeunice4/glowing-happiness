@@ -121,6 +121,14 @@
 }
 .sup-reply-body.bare { padding: 5px; }
 .sup-link { color: var(--blue, #0d8ecf); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+/* A download code, and the one warning that goes with it. */
+.sup-code {
+  display: inline-block; margin: 2px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 17px; font-weight: 800; letter-spacing: .08em;
+  color: var(--ok, #14a05a);
+}
+.sup-warn { color: var(--danger, #d92d20); font-weight: 700; }
 
 /* ── attachments ──────────────────────────────────────────────────────── */
 .sup-att-img { display: block; margin-top: 8px; }

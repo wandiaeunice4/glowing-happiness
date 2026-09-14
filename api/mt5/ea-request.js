@@ -14,7 +14,7 @@
  */
 
 const { readBody, json, recordSupportInbound, supportHistory, isBanned } = require("../_lib/db");
-const { createRequest, attachTelegramMessage, recentRequestCount, approvedCodeFor, PARTNER_ID } = require("../_lib/ea");
+const { createRequest, attachTelegramMessage, recentRequestCount, approvedCodeFor, approvedMatch, approveRequest, codeMessage, PARTNER_ID } = require("../_lib/ea");
 const { recordSupportReply } = require("../_lib/db");
 
 const API = "https://api.telegram.org";
@@ -51,17 +51,15 @@ module.exports = async (req, res) => {
     return json(res, 403, { error: "We cannot take this request. If you think that is a mistake, reach us through the website." });
   }
 
-  /* ALREADY APPROVED — send the code back, do not queue them again. The form
-     has no memory of having been answered; a returning visitor fills it in a
-     second time, and that used to put somebody approved an hour ago back in
-     the decision queue. They hold a code: they need to be told it again. */
+  /* ALREADY APPROVED, WITH DOWNLOADS LEFT — send the code back, do not queue
+     them again. The form has no memory of having been answered; a returning
+     visitor fills it in a second time, and that used to put somebody approved
+     an hour ago back in the decision queue. They hold a live code: they need
+     to be told it again. A spent code falls through to the re-approval. */
   const already = await approvedCodeFor(visitorId);
-  if (already) {
-    await recordSupportReply(visitorId, [
-      "You are already approved — here is your code again:",
-      "", already, "",
-      "Paste it into the download step on the MT5 page to unlock the file. It works only on this browser.",
-    ].join("\n"));
+  if (already && already.usesLeft > 0) {
+    await recordSupportReply(visitorId, codeMessage(already.code, already.mt5Login,
+      `You are already approved — here is your code again. It has ${already.usesLeft} download${already.usesLeft === 1 ? "" : "s"} left:`));
     return json(res, 200, { ok: true, already: true });
   }
 
@@ -76,6 +74,40 @@ module.exports = async (req, res) => {
   if (!token || !chat) {
     console.error("[ea] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are not set");
     return json(res, 502, { error: "We could not reach the team just now. Please try again in a few minutes." });
+  }
+
+  /* APPROVED BEFORE WITH THIS EXACT EMAIL AND ID — on any browser. A spent
+     code, or a new device: the same two facts that were checked the first
+     time are checked again, by machine, and a fresh code is issued to THIS
+     browser at once. The owner is told, with everything needed to /ban if it
+     looks wrong, but is not asked. */
+  const match = await approvedMatch(email, mt5Login);
+  if (match) {
+    const newId = await createRequest({ visitorId, mt5Login, name, email, page });
+    const code = newId ? await approveRequest(newId) : null;
+    if (code) {
+      const why = already ? "your previous code was used up" : "you are on a new browser";
+      await recordSupportInbound({ visitorId, body: `Asked for the Evie MT5 EA again — ID ${mt5Login}`, email, name, source: "MT5 EA access", page });
+      await recordSupportReply(visitorId, codeMessage(code, mt5Login,
+        `Approved again automatically — same email and ID as before, and ${why}. Here is your new code:`));
+      await fetch(`${API}/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chat, parse_mode: "HTML", disable_web_page_preview: true,
+          text: [
+            "<b>MT5 EA access · Evie Trader — approved automatically</b>",
+            `<b>Name:</b> ${esc(name)} · <b>Reply to:</b> <a href="mailto:${esc(email)}">${esc(email)}</a>`,
+            `<b>Person:</b> <code>${esc(visitorId)}</code> · <b>ID:</b> <code>${esc(mt5Login)}</code>`,
+            "",
+            `Same email and ID as an earlier approval (${why}), so code <code>${code}</code> was issued without asking.`,
+            "",
+            "If that is not right, swipe-reply <code>/ban</code> — the code stops working with it.",
+          ].join("\n"),
+        }),
+      }).catch((e) => console.error("[ea] telegram unreachable (auto):", e));
+      return json(res, 200, { ok: true, already: true, auto: true });
+    }
   }
 
   const id = await createRequest({ visitorId, mt5Login, name, email, page });
