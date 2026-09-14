@@ -166,7 +166,6 @@
 "Restart MT5, or press <b>Compile</b> in MetaEditor. The bot then appears under Expert Advisors.":"Reinicia MT5 o pulsa <b>Compilar</b> en MetaEditor. El bot aparecerá entonces en Expert Advisors.",
 "You sign in on Deriv’s own page, not ours. Evie never sees a password, and disconnecting takes one click.":"Inicias sesión en la página de Deriv, no en la nuestra. Evie nunca ve una contraseña, y desconectarse lleva un clic.",
 "(Recommended) Right-click the bot → <b>Register a Virtual Server</b> so it keeps trading with your computer off.":"(Recomendado) Haz clic derecho en el bot → <b>Registrar un servidor virtual</b> para que siga operando con tu ordenador apagado.",
-"Drag it onto <b>any one chart</b>, set <code>InpProfile</code> to your risk level, and enable <b>Algo Trading</b>.":"Arrástralo a <b>cualquier gráfico</b>, ajusta <code>InpProfile</code> a tu nivel de riesgo y activa <b>Algo Trading</b>.",
 "Copy the file into MT5’s <code>MQL5/Experts</code> folder — find it via <code>File → Open Data Folder</code>.":"Copia el archivo en la carpeta <code>MQL5/Experts</code> de MT5 — la encuentras en <code>Archivo → Abrir carpeta de datos</code>.",
 "Set the same level in the bot’s <code>InpProfile</code> input. You can change it at any time without reinstalling.":"Pon el mismo nivel en el parámetro <code>InpProfile</code> del bot. Puedes cambiarlo en cualquier momento sin reinstalar.",
 "Not seeing your full balance? Transfer it to your <strong>options</strong> account in your Deriv portfolio and it will show here.":"¿No ves todo tu saldo? Transfiérelo a tu cuenta de <strong>opciones</strong> en tu cartera de Deriv y aparecerá aquí.",
@@ -418,5 +417,9 @@
 "Requested the Evie MT5 EA — client / MT5 ID {id}.":"Solicité el EA MT5 de Evie — ID de cliente / MT5 {id}.",
 "Asked for the Evie MT5 EA again — client / MT5 ID {id}.":"Volví a pedir el EA MT5 de Evie — ID de cliente / MT5 {id}.",
 "ask us anything about the MT5 EA. Tell us what happened and what you expected.":"pregúntanos lo que quieras sobre el EA de MT5. Cuéntanos qué pasó y qué esperabas.",
-"Create account":"Crear cuenta"
+"Create account":"Crear cuenta",
+"Drag it onto <b>any one chart</b>, set <code>InpProfile</code> to your risk level, and enable <b>Algo Trading</b> — the toolbar button must be green: <span class=\"algo algo-on\"><i></i>Algo Trading</span> is <b>on</b>, <span class=\"algo algo-off\"><i></i>Algo Trading</span> is <b>off</b>.":"Arrástralo a <b>cualquier gráfico</b>, ajusta <code>InpProfile</code> a tu nivel de riesgo y activa <b>Algo Trading</b>: el botón de la barra debe estar en verde. <span class=\"algo algo-on\"><i></i>Algo Trading</span> está <b>activado</b>, <span class=\"algo algo-off\"><i></i>Algo Trading</span> está <b>desactivado</b>.",
+"Copy":"Copiar",
+"Copied":"Copiado",
+"Copy the address":"Copiar la dirección"
 }
