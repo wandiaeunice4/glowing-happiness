@@ -527,11 +527,26 @@ body.ea-open { overflow: hidden; }
   background: var(--surface-2);
   font-size: 13px; color: var(--ink-muted);
 }
-.ea-acct a {
-  display: inline-flex; align-items: center; gap: 5px; flex: none;
-  font-weight: 700; color: var(--blue); text-decoration: none;
+/* The way in, as a button carrying MetaTrader's own mark — the wordmark
+   swaps between its ink and white cuts with the theme. */
+.ea-mt5 {
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  padding: 7px 11px;
+  border: 1px solid var(--line-hi); border-radius: 10px;
+  background: var(--raise); color: var(--ink); text-decoration: none;
+  font-size: 12.5px; font-weight: 700;
+  transition: border-color .15s, background .15s;
 }
-.ea-acct a:hover { text-decoration: underline; }
+.ea-mt5:hover { border-color: var(--blue); }
+.ea-mt5 img { height: 15px; width: auto; display: block; }
+.ea-mt5 svg { color: var(--ink-faint); }
+.ea-mt5 .ea-mt5-white { display: none; }
+:root[data-theme="dark"] .ea-mt5 .ea-mt5-ink { display: none; }
+:root[data-theme="dark"] .ea-mt5 .ea-mt5-white { display: block; }
+@media (max-width: 420px) {
+  .ea-acct { flex-direction: column; align-items: stretch; }
+  .ea-mt5 { justify-content: center; }
+}
 
 .ea-f { display: block; margin-bottom: 12px; }
 .ea-f > span { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink); }

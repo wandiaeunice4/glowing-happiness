@@ -405,7 +405,6 @@
 "We check":"Vérification",
 "The EA takes its signals from our engine, so it goes to Evie’s own Deriv community. Paste the ID of your Deriv account and we check it — usually within a day.":"L’EA tire ses signaux de notre moteur : il est réservé à la communauté Deriv d’Evie. Collez l’ID de votre compte Deriv et nous le vérifions, généralement sous un jour.",
 "No Deriv MT5 account yet?":"Pas encore de compte MT5 Deriv ?",
-"Create one":"En créer un",
 "Client ID or MT5 login":"ID client ou login MT5",
 "Either works. The client ID is on your <a href=\"https://home.deriv.com/dashboard/profile\" target=\"_blank\" rel=\"noopener noreferrer\">Deriv profile</a>; the MT5 login is the number MT5 shows.":"L’un ou l’autre convient. L’ID client figure sur votre <a href=\"https://home.deriv.com/dashboard/profile\" target=\"_blank\" rel=\"noopener noreferrer\">profil Deriv</a> ; le login MT5 est le numéro affiché par MT5.",
 "Edit":"Modifier",
@@ -418,5 +417,6 @@
 "Free for our Deriv community — a quick check, then the file.":"Gratuit pour notre communauté Deriv : une vérification rapide, puis le fichier.",
 "Requested the Evie MT5 EA — client / MT5 ID {id}.":"Demande de l’EA MT5 Evie — ID client / MT5 {id}.",
 "Asked for the Evie MT5 EA again — client / MT5 ID {id}.":"Nouvelle demande de l’EA MT5 Evie — ID client / MT5 {id}.",
-"ask us anything about the MT5 EA. Tell us what happened and what you expected.":"posez-nous n’importe quelle question sur l’EA MT5. Dites-nous ce qui s’est passé et ce que vous attendiez."
+"ask us anything about the MT5 EA. Tell us what happened and what you expected.":"posez-nous n’importe quelle question sur l’EA MT5. Dites-nous ce qui s’est passé et ce que vous attendiez.",
+"Create account":"Créer un compte"
 }
