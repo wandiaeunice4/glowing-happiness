@@ -565,6 +565,11 @@ body.ea-open { overflow: hidden; }
 .ea-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 420px) { .ea-two { grid-template-columns: 1fr; gap: 0; } }
 .ea-send { width: 100%; gap: 8px; margin-top: 2px; }
+.ea-limit {
+  margin: 0 0 10px; padding: 9px 12px;
+  border: 1px solid var(--amber); border-radius: var(--radius-sm);
+  color: var(--amber); font-size: 12.5px; line-height: 1.45;
+}
 .ea .btn[disabled] { opacity: .45; cursor: not-allowed; }
 
 .ea-summary {

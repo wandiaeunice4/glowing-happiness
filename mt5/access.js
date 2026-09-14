@@ -29,6 +29,36 @@
   var MAIL_KEY = "evie_support_email";
   var ID_KEY = "evie_support_id";
   var SENT_KEY = "evie_ea_sent";     // the ID a request went out for, so a reload keeps the sent state
+  var SENDS_KEY = "evie_ea_sends";   // how many times since we last answered, and when
+  var THREAD_KEY = "evie_support_thread";
+  var MAX_SENDS = 3;
+
+  /* ── how many more times they may send ──────────────────────────────────
+     A mistake in the ID is fixed by editing and sending again; a script
+     hammering the form is not. Three sends, then a wait for our answer —
+     and any reply from us in the support thread, arriving after the last
+     send, resets the count. The thread is what the bubble keeps in this
+     browser, so this needs no extra call. */
+  function sends() {
+    try { var v = JSON.parse(get(SENDS_KEY) || "null"); if (v && typeof v.n === "number") return v; } catch (e) {}
+    return { n: 0, at: "" };
+  }
+  function repliedSince(iso) {
+    if (!iso) return false;
+    try {
+      var thread = JSON.parse(get(THREAD_KEY) || "[]");
+      return thread.some(function (l) { return l && l.from === "us" && !l.system && String(l.at || "") > iso; });
+    } catch (e) { return false; }
+  }
+  function sendsLeft() {
+    var v = sends();
+    if (v.n > 0 && repliedSince(v.at)) { v = { n: 0, at: "" }; set(SENDS_KEY, JSON.stringify(v)); }
+    return Math.max(0, MAX_SENDS - v.n);
+  }
+  function countSend() {
+    var v = sends();
+    set(SENDS_KEY, JSON.stringify({ n: v.n + 1, at: new Date().toISOString() }));
+  }
 
   /** The same browser id the support bubble uses — the code is bound to it. */
   function visitorId() {
@@ -67,7 +97,9 @@
     $("eaSent").hidden = !sent;
     $("eaHaveCode").hidden = sent || codeOpen;
     $("eaCodeField").hidden = !(sent || codeOpen);
-    $("eaSend").disabled = !formOk() || busy;
+    var left = sendsLeft();
+    $("eaSend").disabled = !formOk() || busy || left === 0;
+    $("eaLimit").hidden = left > 0;
     $("eaRedeem").disabled = !$("eaCode").value.trim() || busy;
     if (sent) {
       $("eaSumId").textContent = $("eaId").value.trim();
@@ -99,7 +131,7 @@
   }
 
   function send() {
-    if (busy || !formOk()) return;
+    if (busy || !formOk() || sendsLeft() === 0) return;
     busy = true; showErr(null); paint();
     var id = $("eaId").value.trim(), name = $("eaName").value.trim(), email = $("eaMail").value.trim();
 
@@ -112,6 +144,7 @@
       .then(function (x) {
         if (!x.ok) throw new Error(x.j.error || T("Could not send that. Try again in a moment."));
         set(NAME_KEY, name); set(MAIL_KEY, email); set(SENT_KEY, id);
+        countSend();
         phase = "sent";
         /* The bubble opens onto THIS conversation, with the request already in
            it, rather than onto an empty window. The answer lands there. */
@@ -165,6 +198,9 @@
   $("eaMail").addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
   $("eaHaveCode").addEventListener("click", function () { codeOpen = true; paint(); $("eaCode").focus(); });
   $("eaEdit").addEventListener("click", function () { phase = "form"; set(SENT_KEY, ""); paint(); $("eaId").focus(); });
+
+  // Our reply landing in the bubble is what unlocks sending again.
+  window.addEventListener("evie:support-reply", function () { if (!root.hidden) paint(); });
 
   // /mt5.html#get opens straight onto the sheet, for links that promise the file.
   if (location.hash === "#get") open();

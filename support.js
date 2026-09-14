@@ -361,6 +361,8 @@
     next.sort(function (a, b) { return String(a.at || "").localeCompare(String(b.at || "")); });
     state.thread = next.slice(-30);
     set(THREAD_KEY, JSON.stringify(state.thread));
+    // Anything else on the page that waits for our answer — the EA sheet does.
+    try { window.dispatchEvent(new CustomEvent("evie:support-reply")); } catch (e) {}
   }
 
   function markRead() {

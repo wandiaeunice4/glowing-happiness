@@ -421,5 +421,6 @@
 "Drag it onto <b>any one chart</b>, set <code>InpProfile</code> to your risk level, and enable <b>Algo Trading</b> — the toolbar button must be green: <span class=\"algo algo-on\"><i></i>Algo Trading</span> is <b>on</b>, <span class=\"algo algo-off\"><i></i>Algo Trading</span> is <b>off</b>.":"Glissez-le sur <b>un seul graphique</b>, réglez <code>InpProfile</code> sur votre niveau de risque et activez <b>Algo Trading</b> : le bouton de la barre doit être vert. <span class=\"algo algo-on\"><i></i>Algo Trading</span> est <b>activé</b>, <span class=\"algo algo-off\"><i></i>Algo Trading</span> est <b>désactivé</b>.",
 "Copy":"Copier",
 "Copied":"Copié",
-"Copy the address":"Copier l’adresse"
+"Copy the address":"Copier l’adresse",
+"You have sent this three times. Wait for our reply in the support window — it unlocks sending again.":"Vous l’avez déjà envoyé trois fois. Attendez notre réponse dans la fenêtre de support : elle débloque un nouvel envoi."
 }
