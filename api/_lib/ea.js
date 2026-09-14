@@ -143,6 +143,14 @@ async function markAnswered(visitorId) {
   return (res.data || []).length;
 }
 
+/** The same, for a ban placed by email — the visitor id is not known then. */
+async function markAnsweredByEmail(email) {
+  if (!configured() || !email) return 0;
+  const res = await update(TABLE, `email=ilike.${encodeURIComponent(email)}&status=eq.pending&answered_at=is.null`, { answered_at: new Date().toISOString() });
+  if (!res.ok) { console.error("[ea] could not mark answered by email:", res.error); return 0; }
+  return (res.data || []).length;
+}
+
 /**
  * Approve a request and mint its code. Approving one that already has a code
  * returns the SAME code: the owner tapping /approve twice is not a decision to
@@ -215,6 +223,6 @@ async function recentRequestCount(visitorId, withinMinutes) {
 module.exports = {
   PARTNER_ID, DERIV_SIGNUP, DERIV_PROFILE, EXAMPLE_CLIENT_ID, EA_FILE,
   createRequest, attachTelegramMessage, requestForTelegramMessage, requestForVisitor,
-  pendingRequests, approvedCodeFor, markAnswered, approveRequest, declineRequest,
+  pendingRequests, approvedCodeFor, markAnswered, markAnsweredByEmail, approveRequest, declineRequest,
   declineCount, checkCode, recentRequestCount, normaliseCode,
 };

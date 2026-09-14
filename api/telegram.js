@@ -20,7 +20,7 @@ const {
 const { saveTelegramFile } = require("./_lib/files");
 const {
   requestForTelegramMessage, requestForVisitor, pendingRequests, approveRequest, declineRequest,
-  markAnswered, declineCount, PARTNER_ID, DERIV_PROFILE, DERIV_SIGNUP, EXAMPLE_CLIENT_ID,
+  markAnswered, markAnsweredByEmail, declineCount, PARTNER_ID, DERIV_PROFILE, DERIV_SIGNUP, EXAMPLE_CLIENT_ID,
 } = require("./_lib/ea");
 
 const API = "https://api.telegram.org";
@@ -287,6 +287,7 @@ module.exports = async (req, res) => {
       const done = await banPerson({ visitorId, email, reason: reason || null });
       // Somebody shown the door is not somebody you still owe a decision.
       if (done && done.visitorId) await markAnswered(done.visitorId);
+      else if (done && done.email) await markAnsweredByEmail(done.email);
       await say(chatId, done
         ? [
             `Banned ${done.email || done.visitorId}.`,
