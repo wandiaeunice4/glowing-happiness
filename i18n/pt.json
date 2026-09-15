@@ -422,5 +422,6 @@
 "Copy":"Copiar",
 "Copied":"Copiado",
 "Copy the address":"Copiar o endereço",
-"You have sent this three times. Wait for our reply in the support window — it unlocks sending again.":"Você já enviou isso três vezes. Aguarde nossa resposta na janela de suporte — ela libera o envio de novo."
+"You have sent this three times. Wait for our reply in the support window — it unlocks sending again.":"Você já enviou isso três vezes. Aguarde nossa resposta na janela de suporte — ela libera o envio de novo.",
+"<b>Make sure you have followed every step above, in order.</b> A skipped step — the WebRequest address, Algo Trading, the risk profile — is the usual reason a bot sits idle.":"<b>Confira que seguiu cada passo acima, na ordem.</b> Um passo pulado — o endereço WebRequest, o Algo Trading, o perfil de risco — é o motivo habitual de um bot ficar parado."
 }
