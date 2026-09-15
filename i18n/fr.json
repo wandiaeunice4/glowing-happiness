@@ -472,5 +472,6 @@
 "Deriv has to add it — we cannot do it from our side. Send them both of these:":"C’est à Deriv de l’ajouter — nous ne pouvons pas le faire de notre côté. Envoyez-leur ces deux éléments :",
 "Referral link: {url}":"Lien de parrainage : {url}",
 "They usually ask for the link rather than the ID, so it helps to say: {ask}":"Ils demandent généralement le lien plutôt que l’ID, il est donc utile de dire : {ask}",
-"Please paste your client ID or MT5 ID.":"Collez votre ID client ou votre ID MT5."
+"Please paste your client ID or MT5 ID.":"Collez votre ID client ou votre ID MT5.",
+"All markets + Volatility":"Tous les marchés + Volatilité"
 }
