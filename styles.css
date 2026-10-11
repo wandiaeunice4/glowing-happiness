@@ -1428,3 +1428,23 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .tog[aria-checked="true"] { background: rgba(20, 160, 90, 0.18); border-color: var(--ok); }
 .tog[aria-checked="true"] .tog-dot { transform: translateX(16px); background: var(--ok); }
 
+/* No real account yet (real.js): a red way to open one, in place of the balance and its
+   badge. A deep Deriv red that keeps its white words readable. */
+.perch-real {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 13px; border-radius: 999px;
+  background: #d92b36; color: #fff; font-size: 12.5px; font-weight: 700; line-height: 1.2; white-space: nowrap; text-decoration: none;
+  box-shadow: 0 6px 18px rgba(217, 43, 54, 0.28); transition: filter .15s ease, transform .1s ease; -webkit-tap-highlight-color: transparent;
+}
+.perch-real[hidden] { display: none; }
+.perch-real:hover { filter: brightness(1.07); }
+.perch-real:active { transform: scale(0.98); }
+.perch-real:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.perch-real svg { flex: none; }
+.perch.is-noreal #balance, .perch.is-noreal #acct-badge { display: none; }
+@media (max-width: 640px) {
+  .perch-real { height: 32px; padding: 0 10px; gap: 5px; font-size: 11.5px; }
+  .perch-real svg { width: 12px; height: 12px; }
+}
+@media (max-width: 400px) {
+  .perch-real { padding: 0 8px; font-size: 11px; }
+}
