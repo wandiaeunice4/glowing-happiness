@@ -9,11 +9,11 @@
  *   Differs  DIGITDIFF   barrier 0-9  wins when the last digit is NOT the barrier
  *   Over     DIGITOVER   barrier 0-8  wins when the last digit is GREATER
  *   Under    DIGITUNDER  barrier 1-9  wins when the last digit is LESS
+ *   Even     DIGITEVEN   no barrier   wins on 0 2 4 6 8
+ *   Odd      DIGITODD    no barrier   wins on 1 3 5 7 9
  *
  * Offered here: Over 0-7 and Under 2-9. Over 8 and Under 1 win one time in
  * ten, like Matches, and none of the three is offered: never safe.
- *   Even     DIGITEVEN   no barrier   wins on 0 2 4 6 8
- *   Odd      DIGITODD    no barrier   wins on 1 3 5 7 9
  *
  * Rise and Fall are not digit contracts at all — they are CALL and PUT on the
  * price itself, take no barrier, and win if the exit quote is above (or below)
