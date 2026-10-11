@@ -849,6 +849,30 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Which account is about to be traded. Real money says so, in pink. */
+/* Safe / High / Too high beside a figure's label, and the line on why (risk.js):
+   green, amber, red — the palette's own. */
+.fig-risk {
+  --rc: var(--ok);
+  display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; padding: 1px 7px 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--rc) 35%, transparent); border-radius: 999px;
+  background: color-mix(in srgb, var(--rc) 12%, transparent); color: var(--rc);
+  font-size: 9.5px; font-weight: 700; line-height: 1.45; letter-spacing: 0.06em; text-transform: uppercase;
+  white-space: nowrap; vertical-align: 1px;
+}
+.fig-risk[hidden] { display: none; }
+.fig-risk::before { content: ""; flex: none; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.fig-risk[data-risk="high"], .fig-line[data-risk="high"] { --rc: var(--amber); }
+.fig-risk[data-risk="over"], .fig-line[data-risk="over"] { --rc: var(--danger); }
+.fig-note { display: grid; gap: 6px; margin-top: 12px; }
+.fig-note[hidden] { display: none; }
+.fig-line {
+  --rc: var(--ok);
+  margin: 0; padding: 7px 10px; border: 1px solid color-mix(in srgb, var(--rc) 28%, transparent);
+  border-left: 3px solid var(--rc); border-radius: 9px; background: color-mix(in srgb, var(--rc) 8%, transparent);
+  font-size: 12px; line-height: 1.45; color: var(--ink-muted);
+}
+.fig-line b { color: var(--rc); font-weight: 700; }
+
 .risk { margin-top: 14px; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); }
 /* The real-account line reads as reassurance, not alarm: it is confirming the
    trades are the genuine article on the account the trader chose. Pink made a

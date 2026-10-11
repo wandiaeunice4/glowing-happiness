@@ -9,6 +9,9 @@
  *   Differs  DIGITDIFF   barrier 0-9  wins when the last digit is NOT the barrier
  *   Over     DIGITOVER   barrier 0-8  wins when the last digit is GREATER
  *   Under    DIGITUNDER  barrier 1-9  wins when the last digit is LESS
+ *
+ * Offered here: Over 0-7 and Under 2-9. Over 8 and Under 1 win one time in
+ * ten, like Matches, and none of the three is offered: never safe.
  *   Even     DIGITEVEN   no barrier   wins on 0 2 4 6 8
  *   Odd      DIGITODD    no barrier   wins on 1 3 5 7 9
  *
@@ -39,12 +42,12 @@
     },
     over: {
       id: "over", label: "Over", contract: "DIGITOVER",
-      barrier: true, min: 0, max: 8,
+      barrier: true, min: 0, max: 7,
       explain: "Wins if the last digit is greater than this digit."
     },
     under: {
       id: "under", label: "Under", contract: "DIGITUNDER",
-      barrier: true, min: 1, max: 9,
+      barrier: true, min: 2, max: 9,
       explain: "Wins if the last digit is less than this digit."
     },
     even: {
