@@ -133,6 +133,11 @@ body.sh-page { height: 100%; min-height: 0; overflow: hidden; overscroll-behavio
 }
 .sh-pill:hover { border-color: var(--blue); color: var(--blue); }
 .sh-pill:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+/* MT5 Bots: the full MetaTrader 5 mark, small, where the words were (ink on light, pale on dark). */
+.sh-mt5 { display: block; flex: none; height: 11px; width: auto; }
+.sh-mt5--pale { display: none; }
+:root[data-theme="dark"] .sh-mt5--ink { display: none; }
+:root[data-theme="dark"] .sh-mt5--pale { display: block; }
 .sh-pill .tag-bot {
   padding: 1px 5px; border-radius: 5px; font-size: 8.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--pink); background: color-mix(in srgb, var(--pink) 12%, transparent); border: 0;
@@ -638,6 +643,7 @@ body.sh-page { height: 100%; min-height: 0; overflow: hidden; overscroll-behavio
   .sh-pills { gap: 5px; flex-wrap: nowrap; }
   .sh-pill { height: 26px; padding: 0 9px; font-size: 11.5px; }
   .sh-pill .tag-bot { display: none; }
+  .sh-mt5 { height: 10px; }
   .mk-dot { width: 28px; height: 28px; }
   .sh-type { font-size: 11px; min-height: 32px; padding: 4px 3px; }
   .bot-watch { top: 3px; right: 50%; transform: translateX(50%); gap: 1px; }
@@ -647,11 +653,22 @@ body.sh-page { height: 100%; min-height: 0; overflow: hidden; overscroll-behavio
   .sh-page .disclaimer { font-size: 9.5px; line-height: 1.4; }
   .sh-page .dash-foot { padding-top: 5px; }
 }
+@media (max-width: 430px) { .sh-page .brand-name { display: none; } }   /* the mark carries the name */
+@media (max-width: 360px) { .sh-page { --gutter: 14px; } }
 @media (max-width: 340px) {
   .tbal-hint-q { display: none; }
 }
 @media (max-width: 400px) {
-  .sh-pill { padding: 0 8px; font-size: 11px; }
+  /* The balance in full: the carets go (the figure is still the switch), the row sits closer. */
+  .tbal-caret, .sh-page .lang-caret { display: none; }
+  .sh-page .lang-btn { gap: 0; padding: 0 7px; }
+  .sh-page .perch { gap: 5px; }
+  .tbal-chip { gap: 5px; padding: 0 9px; }
+  .sh-title { font-size: 1.05rem; }
+  .sh-bar { gap: 6px; }
+  .sh-pills { gap: 4px; }
+  .sh-mt5 { height: 9px; }
+  .sh-pill { padding: 0 7px; font-size: 11px; }
   .sh-tog { font-size: 10px; letter-spacing: 0.06em; gap: 6px; }
   .sh-togs { gap: 6px 12px; }
   .bot-dots { gap: 3px; }
