@@ -1474,3 +1474,8 @@ ul, ol, dl { margin: 0; padding: 0; list-style: none; }
 .acctp .fund-links, .run-actions + .fund-links { margin-top: 12px; }
 /* In the account sheet: the two links at the left, Disconnect at the right. */
 .sheet-foot:has(.fund-links) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+
+/* An installed app has nothing to install: the button never shows inside one (owner). */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui), (display-mode: window-controls-overlay), (display-mode: tabbed) {
+  [data-install] { display: none !important; }
+}
