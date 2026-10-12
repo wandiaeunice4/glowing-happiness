@@ -587,10 +587,39 @@ body.sh-page { height: 100%; min-height: 0; overflow: hidden; overscroll-behavio
   .sh-scan { margin-top: 10px; }
   .txn-body { padding: 10px 14px; }
 }
-/* A phone on its side: Settings and Session side by side; the trades stay a sheet. */
+/* A phone on its side (or a laptop zoomed right in): Settings across the width in two columns —
+   the type, the figures and the switches on the left; Live scan with Start and Stop under it on
+   the right — and the six figures in one row below. The sheet parks as its bar alone. Sized to
+   what is in it, nothing squeezed: the page is set smaller to fit it instead. */
 @media (min-width: 600px) and (max-width: 859px) and (max-height: 759px) {
-  .sh-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "set ses"; align-items: stretch; }
-  .sh-ses .sh-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  :root { --txn-run-h: 0px; }
+  .sh-page .nav-inner { height: 46px; }
+  .sh { padding-top: 46px; }
+  .sh-grid { display: grid; flex: 0 0 auto; grid-template-columns: minmax(0, 1fr); grid-template-areas: "set" "ses"; align-content: start; }
+  .sh-grid > .sh-card { min-height: auto; }
+  .sh-set {
+    display: grid; column-gap: 16px; align-items: start;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas: "h h" "t s" "f s" "r s" "g o" "m m";
+  }
+  .sh-set-h { grid-area: h; }
+  .sh-set .sh-types { grid-area: t; }
+  .sh-set .sh-fields { grid-area: f; }
+  .sh-set .bot-risk-note { grid-area: r; }
+  .sh-set .sh-togs { grid-area: g; }
+  .sh-set .sh-scan { grid-area: s; margin-top: 0; }
+  .sh-set .sh-go { grid-area: o; display: flex; margin: 8px 0 0; padding: 0; }
+  .sh-set .bot-msg { grid-area: m; }
+  .sh-go .btn { padding: 8px 12px; font-size: 13.5px; }
+  .sh-risk, .sh-scan-idle .bot-dots { display: none; }
+  .sh-scan-say { white-space: normal; }
+  /* The session on one line: the six figures, its state at the end. */
+  .sh-ses { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "st hd"; align-items: center; column-gap: 14px; }
+  .sh-ses-h { grid-area: hd; }
+  .sh-ses-h .grp-t { display: none; }
+  .sh-ses .sh-stats { grid-area: st; grid-template-columns: repeat(6, minmax(0, 1fr)); margin-top: 0; }
+  .txn-run:not(.is-in) { display: none; }
+  .txn-rows { min-height: 0; }
 }
 
 /* ── the header on a small screen ───────────────────────────────────── */
