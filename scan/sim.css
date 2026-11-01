@@ -1,5 +1,5 @@
-/* EVIE — Evie Scout — the simulation's own few styles: the setup card, the green
-   dot that opens it, the pill that says what the page is.
+/* EVIE — Evie Scout — the simulation's own few styles: the setup card and the
+   green dot that opens it.
    Everything on the page behind it is smart.css, unchanged — the point is
    that it looks and behaves like the real page. */
 
@@ -85,7 +85,6 @@
    wider so three taps land on a phone. */
 #acct .tbal-live { position: relative; touch-action: manipulation; }
 #acct .tbal-live::before { content: ""; position: absolute; inset: -9px; }
-
 
 @media (max-width: 420px) {
   .sim-card { padding: 18px 16px; border-radius: 18px; }
